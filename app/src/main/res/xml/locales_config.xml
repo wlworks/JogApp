@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 13+ 的每應用程式語言設定：使用者可在系統設定裡單獨切換 Jog 的語言 -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="zh-Hant-TW" />
+    <locale android:name="zh-TW" />
+</locale-config>

@@ -1,0 +1,47 @@
+<resources>
+    <!-- 預設語系為英文。中文翻譯見 values-zh-rTW/strings.xml -->
+
+    <string name="app_name" translatable="false">Jog</string>
+
+    <!-- Notification -->
+    <string name="notif_channel_name">Mock location running</string>
+    <string name="notif_title">Jog mock location</string>
+    <string name="notif_text">Standing by</string>
+    <string name="notif_action_stop">Stop</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">Jog setup</string>
+    <string name="setup_subtitle">Mock location tool for development testing</string>
+    <string name="setup_overlay">Display over other apps</string>
+    <string name="setup_location">Location access</string>
+    <string name="setup_notification">Notifications</string>
+    <string name="setup_mock_app">Developer options → Select mock location app → Jog</string>
+    <string name="setup_start">Start floating panel</string>
+    <string name="setup_stop">Stop floating panel</string>
+
+    <!-- Floating panel -->
+    <string name="panel_query_hint">Place name or 25.033, 121.565</string>
+    <string name="panel_searching">Searching…</string>
+    <string name="panel_teleport">Teleport here</string>
+    <string name="panel_no_location">No location set</string>
+    <string name="panel_start">Start</string>
+    <string name="panel_stop">Stop</string>
+    <string name="cd_collapse">Collapse panel</string>
+    <string name="cd_close">Close panel</string>
+
+    <!-- Speed tiers -->
+    <string name="speed_creep">Creep</string>
+    <string name="speed_walk">Walk</string>
+    <string name="speed_run">Run</string>
+    <string name="speed_bike">Bike</string>
+    <string name="speed_drive">Drive</string>
+    <string name="speed_rail">Rail</string>
+
+    <!-- Messages -->
+    <string name="msg_need_mock_app">Select Jog under Developer options → Select mock location app</string>
+    <string name="msg_start_failed">Could not start: %1$s</string>
+    <string name="msg_need_target">Enter a place or coordinates first</string>
+    <string name="msg_not_found">No match for \"%1$s\"</string>
+    <string name="msg_geocoder_unavailable">This device cannot search by place name — enter coordinates instead</string>
+    <string name="label_coordinates">Coordinates %1$s</string>
+</resources>

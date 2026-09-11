@@ -1,0 +1,43 @@
+<resources>
+    <!-- Notification -->
+    <string name="notif_channel_name">模擬定位執行中</string>
+    <string name="notif_title">Jog 模擬定位</string>
+    <string name="notif_text">待命中</string>
+    <string name="notif_action_stop">停止</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">Jog 設定</string>
+    <string name="setup_subtitle">開發測試用模擬定位工具</string>
+    <string name="setup_overlay">顯示在其他應用程式上層</string>
+    <string name="setup_location">定位權限</string>
+    <string name="setup_notification">通知權限</string>
+    <string name="setup_mock_app">開發者選項 → 選取模擬位置資訊應用程式 → Jog</string>
+    <string name="setup_start">啟動懸浮視窗</string>
+    <string name="setup_stop">關閉懸浮視窗</string>
+
+    <!-- Floating panel -->
+    <string name="panel_query_hint">地名 或 25.033, 121.565</string>
+    <string name="panel_searching">搜尋中…</string>
+    <string name="panel_teleport">定位到這裡</string>
+    <string name="panel_no_location">尚未設定位置</string>
+    <string name="panel_start">開始模擬</string>
+    <string name="panel_stop">停止模擬</string>
+    <string name="cd_collapse">收合面板</string>
+    <string name="cd_close">關閉面板</string>
+
+    <!-- Speed tiers -->
+    <string name="speed_creep">蝸行</string>
+    <string name="speed_walk">步行</string>
+    <string name="speed_run">慢跑</string>
+    <string name="speed_bike">單車</string>
+    <string name="speed_drive">開車</string>
+    <string name="speed_rail">高鐵</string>
+
+    <!-- Messages -->
+    <string name="msg_need_mock_app">請到「開發者選項 → 選取模擬位置資訊應用程式」選擇 Jog</string>
+    <string name="msg_start_failed">啟動失敗：%1$s</string>
+    <string name="msg_need_target">請先輸入地點或座標</string>
+    <string name="msg_not_found">找不到「%1$s」</string>
+    <string name="msg_geocoder_unavailable">這台裝置無法搜尋地名，請直接輸入經緯度</string>
+    <string name="label_coordinates">座標 %1$s</string>
+</resources>
