@@ -53,6 +53,13 @@ No account or login is required. The app does not connect to the internet.
 - 不要勾任何 13 歲以下的級距，否則會落入 Families 政策，要多填一大堆。
 - 「Appeal to children」問題答 **No**。
 
+## Advertising ID
+
+**Does your app use advertising ID? → No。**
+
+release 合併後的 manifest 沒有 `com.google.android.gms.permission.AD_ID`，相依裡也沒有任何廣告或分析 SDK。
+日後若加了會用到廣告 ID 的 SDK，這裡要改 Yes，manifest 也要補權限，否則 Console 會擋 release。
+
 ## News apps
 
 **No.**
