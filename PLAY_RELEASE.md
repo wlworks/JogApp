@@ -107,12 +107,12 @@ Google Play 規定 **2026-08-31 起新 App 與更新都必須 target Android 16 
 
 targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型的用途。Jog 用了 `location`。
 
-- [ ] 在 Play Console 的 App content 填寫前景服務用途說明（文字草稿在 `store/console-answers.md`）
+- [x] Console 前景服務用途說明已填（Background location updates → Other），2026-09-18 隨首次封閉測試送審
 - [x] 示範影片已錄在 `store/fgs-demo.mp4`（720×1600，約 64 秒）：以 Google 地圖為背景，啟動面板 → 輸入座標瞬移到東京澀谷、地圖跟著跳 →
   切 Drive、把面板拖到下方、地圖放大 → 搖桿往北再往東推，地圖跟著捲動 → 拉下通知列看到「Simulating · Drive」→ 按通知的 Stop → 面板消失。
   **這支只給前景服務申報用**，畫面裡有第三方 App，不要放到商店頁的宣傳影片或截圖
-- [ ] 把影片上傳到 YouTube（不公開即可），連結貼進 Console 的前景服務申報
-- [ ] 說明要具體：「模擬定位持續運作時顯示常駐通知，讓使用者隨時可停止」
+- [x] 影片已上傳 YouTube（不公開）並貼進申報
+- [x] 說明要具體：「模擬定位持續運作時顯示常駐通知，讓使用者隨時可停止」
 
 ### 3.2 定位權限
 
@@ -163,29 +163,29 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 **Jog 的實際資料行為：不蒐集、不傳輸任何使用者資料。** 定位權限只用來建立模擬定位供應者，
 不讀取也不上傳使用者的真實位置；輸入的地名交給系統 `Geocoder`，不經過本 App 的任何伺服器。
 
-- [ ] Data Safety 申報「不蒐集資料」——已檢查：相依裡沒有 analytics / crash reporting SDK，程式碼也沒有任何持久化（無 SharedPreferences / DataStore / 檔案）
+- [x] Data Safety 已申報「不蒐集資料」。依據：相依裡沒有 analytics / crash reporting SDK，程式碼沒有任何持久化，也沒有 INTERNET 權限
 - [ ] 若之後加了 Crashlytics 或 analytics，申報內容要跟著改
 - [x] 隱私權政策寫在 `docs/privacy-policy.md`（英文 + 繁中），網址 <https://wlworks.github.io/JogApp/privacy-policy>
 - [x] GitHub Pages 已啟用（main / docs），網址已確認可開，App 內連結實機點過會跳到瀏覽器
 - [x] 政策裡明講定位權限的用途是建立模擬定位供應者，不是追蹤使用者
 - [x] 政策頁的聯絡方式是 willy78831@gmail.com；Console 商店資訊的公開聯絡 email 要填同一個，開發者名稱要是 WLWorks 才與政策文一致
-- [ ] 沒有帳號系統 → 帳號刪除要求不適用，表單正確勾選即可
+- [x] 沒有帳號系統 → 帳號刪除要求不適用，Data Safety 選 No 後不會出現
 
 ---
 
 ## 6. 一般上架項目
 
-- [ ] 以 **AAB**（Android App Bundle）上傳，不是 APK —— 產出方式見下方 6.1
-- [ ] 啟用 Play App Signing
-- [ ] 內容分級問卷
-- [ ] 目標客群設定（**不要**選含兒童的級距，會觸發 Families 政策）
+- [x] 已以 AAB 上傳到 Closed testing（Alpha）：versionCode 1 / 0.1.0，2026-09-18 送審中
+- [x] Play App Signing 已啟用（Google 產生金鑰，手上的是 upload key）
+- [x] 內容分級問卷：All Other App Types，全部 No
+- [x] 目標客群：只勾 18 and over
 - [x] 512×512 圖示與 1024×500 主題圖片：`python tools/render_store_assets.py` 產到 `store/`
 - [x] 手機截圖各 3 張在 `store/screenshots/en/` 與 `store/screenshots/zh-TW/`（設定頁、面板運行中、速度檔切換），已裁成 2:1、去 alpha，只有 Jog 自己的畫面
 - [x] App 圖示已換成 adaptive icon（`mipmap-anydpi-v26/ic_launcher.xml`，含 monochrome 層）；`ic_pin.xml` 只剩通知在用
-- [ ] 廣告聲明（無廣告）
-- [ ] 資料刪除網址（無帳號系統則不適用）
-- [ ] 商店資訊的**預設語言設為英文**，再另外加繁體中文翻譯（App 內的語系已經是英文預設 + 繁中）
-- [ ] 兩個語系的商店文案都要通過第一節的紅線檢查，不要只檢查英文那份
+- [x] 廣告聲明：無廣告；Advertising ID：不使用
+- [x] 資料刪除網址：不適用
+- [x] 商店資訊預設 en-US，另加 zh-TW，兩個都已隨首次送審
+- [x] 兩個語系的商店文案都用 `store/listing.md` 的版本，紅線檢查已過
 
 ### 6.1 簽章與產出 AAB
 
