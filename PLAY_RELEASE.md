@@ -85,10 +85,13 @@ Google Play 規定 **2026-08-31 起新 App 與更新都必須 target Android 16 
 
 **新建立的個人開發者帳號**必須先跑封閉測試：至少 **12 位測試者持續選擇加入滿 14 天**，才能申請正式版存取權。
 
-- [ ] 先確認手上湊得到 12 個願意裝、而且 14 天內不移除的人
+- [ ] 先確認手上湊得到 12 個願意裝、而且 14 天內不移除的人（多找 2、3 個備用）
 - [ ] 測試者要用 Google 帳號 email 加入清單
 - [ ] 14 天是**連續**的，中途掉人會重來
 - [ ] 提早把這件事排進時程 —— 這是純等待時間，不能壓縮
+- [x] 給測試者的指南：<https://wlworks.github.io/JogApp/testing>（`docs/testing.md`，繁中 + 英文，含加入連結、開發者選項設定、14 天提醒、回報方式）
+- [x] 加入連結：<https://play.google.com/apps/testing/com.wlworks.jog>
+- [x] Release notes 文字：`store/release-notes.md`；Console 操作步驟：`store/console-answers.md` 的 Closed testing 一節
 
 ### 2.2 帳號驗證
 

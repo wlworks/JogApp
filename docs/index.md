@@ -23,6 +23,7 @@ Jog feeds simulated coordinates to the device so that location-aware features su
 ## Links
 
 - [Privacy policy](privacy-policy)
+- [Closed testing guide](testing)
 - [Source code and issue tracker](https://github.com/wlworks/JogApp)
 
 ---
@@ -47,4 +48,5 @@ Jog 把模擬座標餵給裝置，讓地理圍欄、距離計算、移動處理�
 ## 連結
 
 - [隱私權政策](privacy-policy)
+- [封閉測試指南](testing)
 - [原始碼與問題回報](https://github.com/wlworks/JogApp)
