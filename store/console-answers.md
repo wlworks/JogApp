@@ -6,10 +6,20 @@
 
 ---
 
-## App access（審核人員如何使用 App）
+## Sign in details（舊稱 App access）
 
-選 **「All or some functionality is restricted」**，因為審核人員不做開發者選項設定就什麼都測不到。
-Instructions 欄位填：
+**Is any part of your app restricted? → No。**
+
+這個表單 2026 年改版後只問「登入資訊」：帳號登入、付款、推薦碼、一次性 PIN、生物辨識、要在另一台裝置操作。
+Jog 一項都沒有。開發者選項的「選取模擬位置資訊應用程式」是系統設定，不是這裡定義的 restricted；
+選 Yes 會被要求填測試帳號與密碼，填不出來。
+
+審核人員需要的前置步驟已經放在兩個地方，不必再另外交代：
+
+- 商店完整說明的 REQUIREMENTS 段落（`listing.md`）明講要先在開發者選項選 Jog。
+- App 內設定頁第四列會直接帶進開發者選項頁面。
+
+若日後 Google 來信問怎麼測，把下面這段回給他們：
 
 ```
 Jog is a mock location tool for developers. It requires a one-time device setting before it can do anything:
@@ -125,7 +135,7 @@ Video link：把 `store/fgs-demo.mp4` 上傳到 YouTube（設為「不公開」�
 
 ## Testing → Closed testing
 
-上傳前要先把左側 **Dashboard** 上「Set up your app」那串全部打勾（App access、Ads、Content rating、
+上傳前要先把左側 **Dashboard** 上「Set up your app」那串全部打勾（Sign in details、Ads、Content rating、
 Target audience、News、Data safety、Government、Financial、Health、Privacy policy、Store listing），
 答案都在上面。沒填完 Console 不讓你建 release。
 
