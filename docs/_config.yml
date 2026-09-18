@@ -1,0 +1,5 @@
+# GitHub Pages 設定。啟用方式：repo Settings → Pages → Source「Deploy from a branch」→ main / docs。
+# 發佈後網址：https://wlworks.github.io/JogApp/
+title: Jog
+description: Mock location tool for development testing
+theme: jekyll-theme-primer

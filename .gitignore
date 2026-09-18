@@ -7,3 +7,9 @@ captures/
 .externalNativeBuild
 .cxx
 .kotlin/
+
+# release 簽章：金鑰與密碼絕不進版控，範本見 keystore.properties.example
+keystore/
+keystore.properties
+*.jks
+*.keystore

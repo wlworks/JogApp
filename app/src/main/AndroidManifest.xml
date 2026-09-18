@@ -23,9 +23,10 @@
     <application
         android:name=".JogApp"
         android:allowBackup="false"
-        android:icon="@drawable/ic_pin"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Jog">
 

@@ -28,6 +28,19 @@
 | `service/FloatingWindowService.kt` | 前景服務，串起以上所有東西 |
 | `ui/` | 懸浮面板、搖桿、速度選擇器 |
 | `res/values/` | 英文字串（預設）；繁中在 `values-zh-rTW/` |
+| `res/mipmap-anydpi-v26/` | adaptive icon；前景向量在 `drawable/ic_launcher_foreground.xml` |
+| `docs/` | GitHub Pages：首頁與隱私權政策（英文 + 繁中） |
+| `store/` | Play 商店文案草稿與 `render_store_assets.py` 產出的圖示／主題圖 |
+| `tools/` | `check_style.py`（格式檢查）、`render_store_assets.py`（商店素材） |
+
+## Release build
+
+```bash
+./gradlew :app:bundleRelease   # → app/build/outputs/bundle/release/app-release.aab
+```
+
+簽章資訊讀自 repo 根目錄的 `keystore.properties`（已 gitignore，範本見 `keystore.properties.example`）。
+沒有這個檔也能 build，只是產物未簽章。上架流程與政策檢查清單見 [PLAY_RELEASE.md](PLAY_RELEASE.md)。
 
 ## 刻意不做的
 

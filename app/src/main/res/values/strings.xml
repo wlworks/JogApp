@@ -44,4 +44,12 @@
     <string name="msg_not_found">No match for \"%1$s\"</string>
     <string name="msg_geocoder_unavailable">This device cannot search by place name — enter coordinates instead</string>
     <string name="label_coordinates">Coordinates %1$s</string>
+
+    <!-- Purpose statement and permission disclosures -->
+    <string name="setup_purpose">Jog is a developer and QA tool for testing location-aware features such as geofences and movement handling, without leaving your desk. It only works after you choose it as the mock location app under Developer options. Jog never reads, stores, or uploads your real location, and it does not connect to the internet.</string>
+    <string name="setup_privacy_policy">Privacy policy</string>
+    <string name="disclosure_location_title">Why Jog needs location access</string>
+    <string name="disclosure_location_body">Android requires the location permission to register a mock location provider. Jog uses it only for that: it does not read your real location, and nothing leaves this device.</string>
+    <string name="disclosure_continue">Continue</string>
+    <string name="disclosure_cancel">Not now</string>
 </resources>

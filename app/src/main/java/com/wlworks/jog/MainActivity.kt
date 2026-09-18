@@ -20,9 +20,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,11 +49,19 @@ import com.wlworks.jog.service.FloatingWindowService
  *
  * 四道關卡（缺一不可）：
  *  1. 懸浮視窗權限（SYSTEM_ALERT_WINDOW，需跳系統設定）
- *  2. 定位權限（runtime）
+ *  2. 定位權限（runtime）—— 系統對話框之前先跳一段事前說明，交代用途
  *  3. 通知權限（Android 13+，前景服務通知要顯示）
  *  4. 開發者選項裡把本 App 選為「模擬位置資訊應用程式」（無法用程式代勞，只能引導）
+ *
+ * 畫面上同時放了用途說明與隱私權政策連結。SYSTEM_ALERT_WINDOW 與定位權限是 Play 審核
+ * 最在意的兩項，App 內講清楚比只在商店文案講有用。
  */
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        /** 隱私權政策公開網址，由 repo 的 docs/ 透過 GitHub Pages 發佈。 */
+        const val PRIVACY_POLICY_URL = "https://wlworks.github.io/JogApp/privacy-policy"
+    }
 
     private val openSettings = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -60,6 +72,8 @@ class MainActivity : ComponentActivity() {
     private val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissionTick++ }
+
+    private var showLocationDisclosure by mutableStateOf(false)
 
     /** 是否已取得精確定位權限。 */
     private fun hasLocationPermission() = ContextCompat.checkSelfPermission(
@@ -87,12 +101,22 @@ class MainActivity : ComponentActivity() {
                     locationGranted = hasLocationPermission(),
                     notificationGranted = hasNotificationPermission(),
                     onRequestOverlay = ::requestOverlay,
-                    onRequestLocation = ::requestLocation,
+                    onRequestLocation = { showLocationDisclosure = true },
                     onRequestNotification = ::requestNotification,
                     onOpenDeveloperOptions = ::openDeveloperOptions,
+                    onOpenPrivacyPolicy = ::openPrivacyPolicy,
                     onStart = { FloatingWindowService.start(this) },
                     onStop = { FloatingWindowService.stop(this) }
                 )
+                if (showLocationDisclosure) {
+                    LocationDisclosureDialog(
+                        onConfirm = {
+                            showLocationDisclosure = false
+                            requestLocation()
+                        },
+                        onDismiss = { showLocationDisclosure = false }
+                    )
+                }
             }
         }
     }
@@ -112,7 +136,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** 要求精確與概略定位權限。 */
+    /** 用外部瀏覽器開隱私權政策；本 App 自己沒有也不需要網路權限。沒有瀏覽器就靜默略過。 */
+    private fun openPrivacyPolicy() {
+        runCatching {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+        }
+    }
+
+    /** 要求精確與概略定位權限。只在使用者看過事前說明並按下繼續後才呼叫。 */
     private fun requestLocation() {
         requestPermissions.launch(
             arrayOf(
@@ -184,7 +215,23 @@ private fun CheckRow(title: String, granted: Boolean?, onClick: () -> Unit) {
     }
 }
 
-/** 權限引導畫面：四道關卡加上啟動／關閉懸浮視窗。 */
+/** 定位權限的事前說明（prominent disclosure）：在系統對話框之前用自己的 UI 交代用途，按繼續才真正發出請求。 */
+@Composable
+private fun LocationDisclosureDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.disclosure_location_title)) },
+        text = { Text(stringResource(R.string.disclosure_location_body)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(stringResource(R.string.disclosure_continue)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.disclosure_cancel)) }
+        }
+    )
+}
+
+/** 權限引導畫面：用途說明、四道關卡、啟動／關閉懸浮視窗，底下附隱私權政策連結。 */
 @Composable
 private fun SetupScreen(
     overlayGranted: Boolean,
@@ -194,6 +241,7 @@ private fun SetupScreen(
     onRequestLocation: () -> Unit,
     onRequestNotification: () -> Unit,
     onOpenDeveloperOptions: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit
 ) {
@@ -203,6 +251,7 @@ private fun SetupScreen(
             .fillMaxSize()
             .background(Color(0xFF121416))
             .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -214,6 +263,12 @@ private fun SetupScreen(
             stringResource(R.string.setup_subtitle),
             color = Color.White.copy(alpha = 0.5f),
             fontSize = 12.sp
+        )
+        Text(
+            stringResource(R.string.setup_purpose),
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 13.sp,
+            lineHeight = 19.sp
         )
 
         CheckRow(stringResource(R.string.setup_overlay), overlayGranted, onRequestOverlay)
@@ -227,5 +282,16 @@ private fun SetupScreen(
 
         Action(stringResource(R.string.setup_start), enabled = ready, onClick = onStart)
         Action(stringResource(R.string.setup_stop), enabled = true, onClick = onStop)
+
+        Text(
+            text = stringResource(R.string.setup_privacy_policy),
+            color = Color(0xFF4DD0E1),
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenPrivacyPolicy)
+                .padding(vertical = 8.dp)
+        )
     }
 }

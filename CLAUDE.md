@@ -67,6 +67,7 @@ python tools/check_style.py
 ```bash
 ./gradlew :app:testDebugUnitTest    # 單元測試
 ./gradlew :app:installDebug         # 裝到已連線的裝置
+./gradlew :app:bundleRelease        # 簽章的 release AAB；簽章讀 keystore.properties（gitignore），沒有就不簽
 ```
 
 單元測試只涵蓋 `core/`（`GeoMath`、`CoordinateParser`）。`MockLocationEngine`、

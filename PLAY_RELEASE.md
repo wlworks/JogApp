@@ -30,10 +30,10 @@ Jog 有一個很好的天然辯護：**必須先到開發者選項把本 App 選
 
 用「開發者 / QA 工具」框架：測試定位相關功能、驗證地理圍欄、模擬移動軌跡、不需要真的跑到現場。App 內加一段簡短的用途說明與免責聲明。
 
-- [ ] 商店標題、簡短說明、完整說明通篇不含上表任一詞彙
+- [x] 商店標題、簡短說明、完整說明通篇不含上表任一詞彙 —— 草稿見 `store/listing.md`，改文案後重查
 - [ ] 截圖只有 Jog 自己的畫面
-- [ ] 說明文字裡明講「需要啟用開發者選項」
-- [ ] App 內首頁有用途說明
+- [x] 說明文字裡明講「需要啟用開發者選項」（`store/listing.md` 兩個語系都有）
+- [x] App 內首頁有用途說明（`setup_purpose`），底部附隱私權政策連結
 
 ---
 
@@ -99,8 +99,11 @@ Google Play 規定 **2026-08-31 起新 App 與更新都必須 target Android 16 
 
 targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型的用途。Jog 用了 `location`。
 
-- [ ] 在 Play Console 的 App content 填寫前景服務用途說明
-- [ ] 準備一段**示範影片**，展示前景服務在 App 裡實際的樣子（Console 常會要求）
+- [ ] 在 Play Console 的 App content 填寫前景服務用途說明（文字草稿在 `store/console-answers.md`）
+- [x] 示範影片已錄在 `store/fgs-demo.mp4`（720×1600，約 64 秒）：以 Google 地圖為背景，啟動面板 → 輸入座標瞬移到東京澀谷、地圖跟著跳 →
+  切 Drive、把面板拖到下方、地圖放大 → 搖桿往北再往東推，地圖跟著捲動 → 拉下通知列看到「Simulating · Drive」→ 按通知的 Stop → 面板消失。
+  **這支只給前景服務申報用**，畫面裡有第三方 App，不要放到商店頁的宣傳影片或截圖
+- [ ] 把影片上傳到 YouTube（不公開即可），連結貼進 Console 的前景服務申報
 - [ ] 說明要具體：「模擬定位持續運作時顯示常駐通知，讓使用者隨時可停止」
 
 ### 3.2 定位權限
@@ -108,8 +111,8 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 **好消息：Jog 沒有用 `ACCESS_BACKGROUND_LOCATION`**，省掉最麻煩的背景定位審核（那個要另外填申報表、拍影片、而且經常被退）。
 
 - [ ] **絕對不要為了方便加上 `ACCESS_BACKGROUND_LOCATION`**
-- [ ] 請求定位權限前要有 prominent disclosure：在系統對話框跳出**之前**，先用自己的 UI 說明為什麼需要
-- [ ] 說明要講清楚「用來建立模擬定位供應者」，不是「追蹤你的位置」
+- [x] 請求定位權限前要有 prominent disclosure：`MainActivity` 的 `LocationDisclosureDialog` 先跳出，按繼續才呼叫系統請求
+- [x] 說明要講清楚「用來建立模擬定位供應者」，不是「追蹤你的位置」（`disclosure_location_body`）
 
 ### 3.3 其他權限
 
@@ -140,7 +143,7 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 代價：少數沒有 geocoding backend 的機型查不到地名。UI 會回「這台裝置無法搜尋地名，請直接輸入經緯度」，
 功能不會因此不可用 —— 座標輸入永遠有效，而且是離線的。
 
-- [ ] 確認 release build 的 Manifest 裡真的沒有 `INTERNET`（合併後的 manifest 也要看，相依函式庫可能自己帶）
+- [x] 已確認 release 合併後的 manifest 沒有 `INTERNET`（2026-09 以 `bundleRelease` 產物核對，`app/build/intermediates/merged_manifests/release/`）。相依升版後要重看一次
 - [ ] 如果之後加回遠端備援，記得同步補回權限、Data Safety 申報與隱私權政策內容
 
 ---
@@ -152,32 +155,52 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 **Jog 的實際資料行為：不蒐集、不傳輸任何使用者資料。** 定位權限只用來建立模擬定位供應者，
 不讀取也不上傳使用者的真實位置；輸入的地名交給系統 `Geocoder`，不經過本 App 的任何伺服器。
 
-- [ ] Data Safety 申報「不蒐集資料」——但要誠實檢查：確認 App 真的沒有任何 analytics / crash reporting SDK
+- [ ] Data Safety 申報「不蒐集資料」——已檢查：相依裡沒有 analytics / crash reporting SDK，程式碼也沒有任何持久化（無 SharedPreferences / DataStore / 檔案）
 - [ ] 若之後加了 Crashlytics 或 analytics，申報內容要跟著改
-- [ ] 隱私權政策放在可公開存取的固定 URL（GitHub Pages 就夠），內容要與 Data Safety 一致
-- [ ] 政策裡明講定位權限的用途是建立模擬定位供應者，不是追蹤使用者
+- [x] 隱私權政策寫在 `docs/privacy-policy.md`（英文 + 繁中），網址 <https://wlworks.github.io/JogApp/privacy-policy>
+- [x] GitHub Pages 已啟用（main / docs），網址已確認可開，App 內連結實機點過會跳到瀏覽器
+- [x] 政策裡明講定位權限的用途是建立模擬定位供應者，不是追蹤使用者
+- [x] 政策頁的聯絡方式是 willy78831@gmail.com；Console 商店資訊的公開聯絡 email 要填同一個，開發者名稱要是 WLWorks 才與政策文一致
 - [ ] 沒有帳號系統 → 帳號刪除要求不適用，表單正確勾選即可
 
 ---
 
 ## 6. 一般上架項目
 
-- [ ] 以 **AAB**（Android App Bundle）上傳，不是 APK
+- [ ] 以 **AAB**（Android App Bundle）上傳，不是 APK —— 產出方式見下方 6.1
 - [ ] 啟用 Play App Signing
 - [ ] 內容分級問卷
 - [ ] 目標客群設定（**不要**選含兒童的級距，會觸發 Families 政策）
-- [ ] 商店素材：512×512 圖示、1024×500 主題圖片、至少 2 張手機截圖
-- [ ] App 圖示目前用 `ic_pin.xml` 當佔位，上架前要換成正式的 adaptive icon
+- [x] 512×512 圖示與 1024×500 主題圖片：`python tools/render_store_assets.py` 產到 `store/`
+- [x] 手機截圖各 3 張在 `store/screenshots/en/` 與 `store/screenshots/zh-TW/`（設定頁、面板運行中、速度檔切換），已裁成 2:1、去 alpha，只有 Jog 自己的畫面
+- [x] App 圖示已換成 adaptive icon（`mipmap-anydpi-v26/ic_launcher.xml`，含 monochrome 層）；`ic_pin.xml` 只剩通知在用
 - [ ] 廣告聲明（無廣告）
 - [ ] 資料刪除網址（無帳號系統則不適用）
 - [ ] 商店資訊的**預設語言設為英文**，再另外加繁體中文翻譯（App 內的語系已經是英文預設 + 繁中）
 - [ ] 兩個語系的商店文案都要通過第一節的紅線檢查，不要只檢查英文那份
 
+### 6.1 簽章與產出 AAB
+
+upload key 與密碼放在 gitignore 的 `keystore/` 與 `keystore.properties`（範本 `keystore.properties.example`）。
+`app/build.gradle.kts` 有這個檔就簽章，沒有就照樣 build 但不簽，所以 clone 下來的環境不會因此失敗。
+
+```bash
+./gradlew :app:bundleRelease
+# 產出：app/build/outputs/bundle/release/app-release.aab
+```
+
+- [x] 已備份 `keystore/upload-keystore.jks` 與 `keystore.properties` 到 repo 以外（2026-09-18）。啟用 Play App Signing 後這把只是 upload key，遺失可以向 Google 申請重設，但要等好幾天
+- [ ] 第一次上傳前想換自己的密碼就現在換：上傳後 upload key 就綁定了，之後只能走重設流程
+- [ ] 每次上傳前 `versionCode` +1，Play 不接受重複值
+- [x] release 開了 R8 與 resource shrinking，2026-09 已用 release build 實機跑過完整流程：權限引導、懸浮面板、
+  輸入座標瞬移、Start、切換速度檔、搖桿推 3 秒座標往北位移、Stop、關閉面板後 `dumpsys location` 無殘留 `[mock]`，
+  logcat 無例外。每次改動相依後要重跑一遍，不能只測 debug
+
 ### 16 KB page size
 
 Play 要求 App 相容 16 KB 記憶體分頁。這條只影響**含原生 `.so` 的 App**。
 
-- [ ] 用 Android Studio 的 APK Analyzer 確認 AAB 裡有沒有 `.so`。純 Kotlin + 目前這組相依應該沒有，確認一次就好
+- [x] AAB 裡**有** `.so`：Compose 透過 `androidx.graphics:graphics-path:1.0.1` 帶進 `libandroidx.graphics.path.so`（四個 ABI）。已檢查四個檔的 ELF `PT_LOAD` 對齊都是 16384，符合要求。升 Compose BOM 後要重驗（`unzip -l app-release.aab | grep .so` 再看 ELF 對齊）
 
 ---
 
