@@ -100,7 +100,11 @@ https://wlworks.github.io/JogApp/privacy-policy
 
 Console 會列出 manifest 裡宣告的類型，Jog 只有 **location**。
 
-Description 欄位填：
+「What tasks require your app to use the FOREGROUND_SERVICE_LOCATION permission?」
+勾 **Background location updates → Other**，其他不勾。服務的工作就是持續發布（模擬的）定位更新，
+不是分享、導航或地理圍欄；「Other tasks → Other」是給與定位無關的工作用的，會和 location 類型對不上。
+
+勾了之後展開的 Description 欄位填：
 
 ```
 Jog runs a foreground service of type "location" while the user has started the floating mock-location panel. The service registers a mock location provider and pushes the simulated coordinates the user has entered at 10 Hz so that the app under test always has a fresh fix. A persistent notification with a "Stop" action is shown for the whole time the service runs, so the user can end the simulation at any moment, even while another app is in the foreground. The service stops and the notification is removed when the user taps Stop, closes the floating panel, or the app is removed from the mock location setting. The service does not read the device's real location and does not access the network.
