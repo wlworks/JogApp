@@ -39,9 +39,12 @@ No account or login is required. The app does not connect to the internet.
 
 ## Content rating（內容分級問卷）
 
-- Category：**Utility, Productivity, Communication, or Other**
-- 所有問題（暴力、性、語言、管制物質、賭博、使用者互動、分享位置、購買數位商品等）全部答 **No**。
+- Email address：`willy78831@gmail.com`，與商店資訊的聯絡信箱一致。
+- Category：**All Other App Types**（舊介面叫 Utility, Productivity, Communication, or Other）。
+- 勾 IARC Terms of Use。
+- 問卷所有問題（暴力、性、語言、管制物質、賭博、使用者互動、分享位置、購買數位商品、不受限制的網路瀏覽等）全部答 **No**。
   - 「Does the app share the user's current location with other users?」→ **No**。App 不讀取真實位置，也沒有使用者之間的互動。
+  - 網路瀏覽／連網相關 → **No**，App 沒有 INTERNET 權限。
 - 預期分級：Everyone / PEGI 3 / 全年齡。
 
 ## Target audience and content
