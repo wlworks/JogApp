@@ -23,10 +23,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.wlworks.jog.MainActivity
 import com.wlworks.jog.R
 import com.wlworks.jog.core.LatLng
+import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.data.GeocodeRepository
 import com.wlworks.jog.mock.MockLocationEngine
 import com.wlworks.jog.mock.MovementController
@@ -93,8 +97,8 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
-    /** 建立前景服務通知，必要時順便補上通知頻道。 */
-    private fun buildNotification(): Notification {
+    /** 建立前景服務通知，必要時順便補上通知頻道。內文依模擬狀態顯示「待命」或目前速度檔。 */
+    private fun buildNotification(running: Boolean, tier: SpeedTier): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java)
             if (manager.getNotificationChannel(CHANNEL_ID) == null) {
@@ -115,9 +119,14 @@ class FloatingWindowService : LifecycleService() {
             this, 1, Intent(this, FloatingWindowService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
+        val text = if (running) {
+            getString(R.string.notif_text_running, getString(tier.labelRes))
+        } else {
+            getString(R.string.notif_text)
+        }
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.notif_title))
-            .setContentText(getString(R.string.notif_text))
+            .setContentText(text)
             .setSmallIcon(R.drawable.ic_pin)
             .setContentIntent(open)
             .setOngoing(true)
@@ -136,6 +145,20 @@ class FloatingWindowService : LifecycleService() {
         this, android.Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
+    /** 模擬開始／停止或切換速度檔時更新常駐通知內文。座標變化不更新，避免每秒刷三次通知。 */
+    private fun observeStateForNotification() {
+        lifecycleScope.launch {
+            MockStateHolder.state
+                .map { it.running to it.speedTier }
+                .distinctUntilChanged()
+                .drop(1) // 第一份已經用在 startForeground
+                .collect { (running, tier) ->
+                    getSystemService(NotificationManager::class.java)
+                        .notify(NOTIF_ID, buildNotification(running, tier))
+                }
+        }
+    }
+
     /** 建好相依元件、確認權限、進入前景並掛上懸浮視窗。 */
     override fun onCreate() {
         super.onCreate()
@@ -152,15 +175,14 @@ class FloatingWindowService : LifecycleService() {
         }
 
         val started = runCatching {
+            // 狀態是行程層級的，Service 被 START_STICKY 拉起時可能已經在模擬中
+            val state = MockStateHolder.state.value
+            val notification = buildNotification(state.running, state.speedTier)
             // Android 10+ 起前景服務必須在啟動時就宣告 type
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    NOTIF_ID,
-                    buildNotification(),
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-                )
+                startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
             } else {
-                startForeground(NOTIF_ID, buildNotification())
+                startForeground(NOTIF_ID, notification)
             }
         }.isSuccess
 
@@ -168,6 +190,7 @@ class FloatingWindowService : LifecycleService() {
             stopSelf()
             return
         }
+        observeStateForNotification()
         showOverlay()
     }
 
@@ -222,7 +245,9 @@ class FloatingWindowService : LifecycleService() {
 
     /** 把面板／收合泡泡的 Compose 內容掛進 overlay，並接好所有互動回呼。 */
     private fun showOverlay() {
-        overlay.show {
+        // 打字中按返回鍵或點到面板外面 → 放掉輸入框焦點，讓 onFocusChanged 把視窗改回不可聚焦。
+        // 不直接動視窗旗標，理由同 onCollapse。
+        overlay.show(onDismissInput = MockStateHolder::releaseInputFocus) {
             val state by MockStateHolder.state.collectAsState()
             var collapsed by remember { mutableStateOf(false) }
 

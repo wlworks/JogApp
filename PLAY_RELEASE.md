@@ -47,28 +47,33 @@ Google Play 規定 **2026-08-31 起新 App 與更新都必須 target Android 16 
 
 `windowOptOutEdgeToEdgeEnforcement` 在 Android 16 上已失效，無法退出。`MainActivity` 已加上 `enableEdgeToEdge()` 與 `safeDrawingPadding()`。
 
-- [ ] 在有瀏海 / 手勢導覽列的實機上確認權限引導頁沒有被系統列蓋住
+- [x] 在手勢導覽列的實機上確認過：引導頁標題在狀態列下方、底部連結在導覽列上方，內容改為可捲動
 
 ### 1.2 Predictive back ⚠️ 要驗
 
 `onBackPressed()` 不再被呼叫，`KeyEvent.KEYCODE_BACK` 不再派送。
 
-對 Jog 的具體影響：**懸浮視窗在 focusable 狀態（打字中）會接到返回鍵**，這段行為在 API 36 上一定要重測。
+對 Jog 的具體影響：**懸浮視窗在 focusable 狀態（打字中）會接到返回鍵**。2026-09 實測 release build 確實中招：
+鍵盤收起後輸入框仍保有焦點、視窗持續可聚焦，之後的返回鍵全被 overlay 吞掉，底下 App 收不到；點面板外面也不會放掉焦點。
+已在 `OverlayHost` 修正：可聚焦期間向 `OnBackInvokedDispatcher` 註冊回呼（API 33+，API 32 以下走 KeyEvent），
+並處理 `ACTION_OUTSIDE`，兩者都呼叫 `releaseInputFocus()` 讓視窗回到不可聚焦。
 
-- [ ] 輸入框打字中按返回 → 收起鍵盤，不是關掉 overlay
-- [ ] 非打字狀態按返回 → 作用在底層 App
-- [ ] 權限引導頁的返回手勢有預期的動畫
+- [x] 輸入框打字中按返回 → 收起鍵盤，不是關掉 overlay
+- [x] 鍵盤收起後再按返回 → 放掉輸入框焦點，第三次返回才作用在底層 App
+- [x] 打字中點面板外面 → 收鍵盤、放掉焦點（需要 FLAG_NOT_TOUCH_MODAL，否則可聚焦的視窗會吃掉面板外所有觸控）
+- [x] 非打字狀態按返回 → 作用在底層 App
+- [x] 權限引導頁的返回手勢有預期的動畫（左緣拖曳到一半截圖：畫面縮小、圓角、左側返回箭頭，放開後回桌面）
 
 ### 1.3 大螢幕方向與尺寸限制
 
 螢幕最小寬度 ≥ 600dp 時，`android:screenOrientation`、`android:resizableActivity`、`minAspectRatio` / `maxAspectRatio` 全部被忽略。
 
-- [ ] `MainActivity` 在平板 / 分割視窗 / 橫向下排版正常
-- [ ] 懸浮面板固定 268dp 寬，在大螢幕上不要顯得過小（考慮依螢幕寬度調整）
+- [x] `MainActivity` 在 sw840dp（`wm density 240` 模擬）直向與橫向排版正常；分割視窗未測（adb 無法直接進入，實機沒有平板）
+- [x] 懸浮面板 268dp 在 sw840dp 上約佔螢幕 1/4 寬，偏小但每個控制項都還能點；上架不擋，之後可考慮依螢幕寬度放大
 
 ### 1.4 建置工具鏈
 
-- [ ] `compileSdk = 36` 需要對應的 AGP 與 Build Tools，Gradle / JDK 版本一起拉
+- [x] `compileSdk = 36` 以 AGP 8.9.0 + Gradle 8.11.1 + JBR 17 成功產出 release AAB
 
 ---
 

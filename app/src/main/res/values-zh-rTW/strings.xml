@@ -3,6 +3,7 @@
     <string name="notif_channel_name">模擬定位執行中</string>
     <string name="notif_title">Jog 模擬定位</string>
     <string name="notif_text">待命中</string>
+    <string name="notif_text_running">模擬中 · %1$s</string>
     <string name="notif_action_stop">停止</string>
 
     <!-- Setup screen -->
