@@ -199,10 +199,29 @@ upload key 與密碼放在 gitignore 的 `keystore/` 與 `keystore.properties`�
 
 - [x] 已備份 `keystore/upload-keystore.jks` 與 `keystore.properties` 到 repo 以外（2026-09-18）。啟用 Play App Signing 後這把只是 upload key，遺失可以向 Google 申請重設，但要等好幾天
 - [ ] 第一次上傳前想換自己的密碼就現在換：上傳後 upload key 就綁定了，之後只能走重設流程
-- [ ] 每次上傳前 `versionCode` +1，Play 不接受重複值
+- [x] 版本號只改 `app/build.gradle.kts` 的 `appVersion`，`versionCode` 由它算出（見 6.2），不再手動 +1
 - [x] release 開了 R8 與 resource shrinking，2026-09 已用 release build 實機跑過完整流程：權限引導、懸浮面板、
   輸入座標瞬移、Start、切換速度檔、搖桿推 3 秒座標往北位移、Stop、關閉面板後 `dumpsys location` 無殘留 `[mock]`，
   logcat 無例外。每次改動相依後要重跑一遍，不能只測 debug
+
+### 6.2 版本號規則
+
+`versionName` 走 MAJOR.MINOR.PATCH，`versionCode` = MAJOR×10000 + MINOR×100 + PATCH，
+由 `app/build.gradle.kts` 的 `appVersion` 一行算出（1.0.0 → 10000、1.2.3 → 10203），
+Console 上看到的數字能直接對回版本，也不會出現 versionName 升了但 versionCode 忘了升。每段上限 99。
+
+| 段 | 什麼時候 +1 | 例子 |
+|---|---|---|
+| MAJOR | 使用方式改變，或需要重新申報 Play 表單的變動 | 加 INTERNET 權限接遠端 geocoding |
+| MINOR | 任何使用者看得到的新東西，不分大小 | 收合保留搖桿、記住位置、隨機跳 |
+| PATCH | 只修行為，不新增 UI | 地名 label 回寫導致二次定位跑掉 |
+
+Play 不接受重複的 `versionCode`，所以**同一個版本號不能上傳兩次**：包錯了就升 PATCH 重包，不要想同版本重傳。
+
+版本紀錄：
+
+- 0.1.0（versionCode 1）— 2026-09-18 第一輪 Closed testing
+- 1.0.0（versionCode 10000）— 封測回饋修正：收合保留搖桿、記住上次位置、地名解析修正、隨機跳到附近
 
 ### 16 KB page size
 
