@@ -5,7 +5,7 @@ title: Jog Privacy Policy
 
 # Jog Privacy Policy
 
-**Effective date: 2026-09-18**
+**Effective date: 2026-09-23**
 
 Jog ("the app") is a mock location tool for development and QA testing, published by WLWorks. This policy explains what the app does with data. The short version: **Jog does not collect, store or transmit any personal data.**
 
@@ -26,7 +26,7 @@ When you type a place name, Jog hands the text to the Android system Geocoder on
 
 ## Data storage
 
-Coordinates and settings you enter are kept in memory only and are discarded when the app process ends. Jog writes nothing to persistent storage.
+Jog remembers the last simulated coordinate you set, so you can pick up where you left off the next time you open the app. This is the coordinate you typed or steered to — never your device's real location. It is stored in the app's private storage on your device, is never transmitted anywhere, and is removed when you uninstall the app or clear its data. Everything else (place-name queries, speed tier, panel position) is kept in memory only and is discarded when the app process ends.
 
 ## Children
 
@@ -44,7 +44,7 @@ Questions about this policy can be sent to WLWorks at <willy78831@gmail.com>, or
 
 # Jog 隱私權政策
 
-**生效日期：2026-09-18**
+**生效日期：2026-09-23**
 
 Jog（以下稱「本 App」）是 WLWorks 發行的開發與 QA 測試用模擬定位工具。本政策說明本 App 如何處理資料。一句話版本：**Jog 不蒐集、不儲存、不傳輸任何個人資料。**
 
@@ -65,7 +65,7 @@ Jog 不蒐集任何個人或裝置資料。App 內沒有分析、當機回報、
 
 ## 資料儲存
 
-你輸入的座標與設定只保存在記憶體中，App 行程結束即丟棄。Jog 不寫入任何持久儲存。
+Jog 會記住你最後設定的模擬座標，下次開啟 App 時可以直接接續。這是你輸入或推桿移動到的座標，絕不是裝置的真實位置。它存放在 App 在裝置上的私有儲存空間，不會傳送到任何地方，解除安裝或清除 App 資料時一併移除。其餘內容（地名查詢、速度檔次、面板位置）只保存在記憶體中，App 行程結束即丟棄。
 
 ## 兒童
 

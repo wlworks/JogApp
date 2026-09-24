@@ -75,7 +75,8 @@ release 合併後的 manifest 沒有 `com.google.android.gms.permission.AD_ID`�
 - Is all of the user data collected by your app encrypted in transit? → 不會出現（沒有資料）。
 - Do you provide a way for users to request that their data is deleted? → 不會出現（沒有資料）。
 
-依據：App 沒有 INTERNET 權限；沒有 analytics、crash reporting、廣告 SDK；沒有任何持久化儲存；
+依據：App 沒有 INTERNET 權限；沒有 analytics、crash reporting、廣告 SDK；唯一的持久化是上次的模擬座標，
+存在裝置本機 App 私有空間、不傳出裝置，不算 Data Safety 定義的「蒐集」；
 定位權限只用來註冊模擬定位供應者，不讀取真實位置。
 
 ## Government apps

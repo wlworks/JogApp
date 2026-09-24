@@ -21,6 +21,7 @@
 | `core/SpeedTier.kt` | 速度檔次定義 |
 | `core/CoordinateParser.kt` | 十進位 / DMS 座標解析 |
 | `data/GeocodeRepository.kt` | 座標解析 → 系統 Geocoder（4s timeout）。不打任何外部服務 |
+| `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化；App 唯一寫入磁碟的東西 |
 | `mock/MockLocationEngine.kt` | LocationManager test provider + Fused mock mode |
 | `mock/MovementController.kt` | 10Hz tick，把搖桿輸入換成座標位移 |
 | `state/MockState.kt` | 程序內唯一狀態來源 |
@@ -53,7 +54,7 @@
 
 ## 還沒做的（刻意留白）
 
-- 座標持久化 / 我的最愛
+- 我的最愛（目前只記上一次的座標）
 - 路線錄製與回放
 - 抖動模擬（固定座標太乾淨，容易被反作弊偵測；測試場景多半不需要）
 - 高度／室內樓層

@@ -163,7 +163,7 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 **Jog 的實際資料行為：不蒐集、不傳輸任何使用者資料。** 定位權限只用來建立模擬定位供應者，
 不讀取也不上傳使用者的真實位置；輸入的地名交給系統 `Geocoder`，不經過本 App 的任何伺服器。
 
-- [x] Data Safety 已申報「不蒐集資料」。依據：相依裡沒有 analytics / crash reporting SDK，程式碼沒有任何持久化，也沒有 INTERNET 權限
+- [x] Data Safety 已申報「不蒐集資料」。依據：相依裡沒有 analytics / crash reporting SDK，也沒有 INTERNET 權限。唯一的持久化是 `LastLocationStore` 存的上次**模擬**座標，只在裝置本機的 App 私有空間，不離開裝置 —— Data Safety 的「蒐集」定義是傳出裝置，所以不必申報；隱私權政策「資料儲存」一節已對應更新
 - [ ] 若之後加了 Crashlytics 或 analytics，申報內容要跟著改
 - [x] 隱私權政策寫在 `docs/privacy-policy.md`（英文 + 繁中），網址 <https://wlworks.github.io/JogApp/privacy-policy>
 - [x] GitHub Pages 已啟用（main / docs），網址已確認可開，App 內連結實機點過會跳到瀏覽器

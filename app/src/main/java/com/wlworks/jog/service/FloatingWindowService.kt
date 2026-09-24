@@ -23,8 +23,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.wlworks.jog.MainActivity
@@ -32,6 +35,7 @@ import com.wlworks.jog.R
 import com.wlworks.jog.core.LatLng
 import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.data.GeocodeRepository
+import com.wlworks.jog.data.LastLocationStore
 import com.wlworks.jog.mock.MockLocationEngine
 import com.wlworks.jog.mock.MovementController
 import com.wlworks.jog.state.MockStateHolder
@@ -57,6 +61,9 @@ class FloatingWindowService : LifecycleService() {
         /** 前景服務通知 id。 */
         private const val NOTIF_ID = 1001
 
+        /** 模擬座標寫入 SharedPreferences 的最小間隔。移動中 3Hz 的更新沒必要每次都落地。 */
+        private const val SAVE_INTERVAL_MS = 2_000L
+
         /** 依 API 等級用正確的方式拉起前景服務。 */
         fun start(context: Context) {
             val intent = Intent(context, FloatingWindowService::class.java)
@@ -75,6 +82,7 @@ class FloatingWindowService : LifecycleService() {
 
     private lateinit var engine: MockLocationEngine
     private lateinit var geocoder: GeocodeRepository
+    private lateinit var lastLocation: LastLocationStore
     private lateinit var movement: MovementController
     private lateinit var overlay: OverlayHost
 
@@ -159,12 +167,28 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
+    /** 座標一變就存下來，但兩次寫入至少隔 SAVE_INTERVAL_MS；conflate 保證存到的永遠是最新值。 */
+    private fun observeStateForPersistence() {
+        lifecycleScope.launch {
+            MockStateHolder.state
+                .map { it.current }
+                .filterNotNull()
+                .distinctUntilChanged()
+                .conflate()
+                .collect { point ->
+                    lastLocation.save(point)
+                    delay(SAVE_INTERVAL_MS)
+                }
+        }
+    }
+
     /** 建好相依元件、確認權限、進入前景並掛上懸浮視窗。 */
     override fun onCreate() {
         super.onCreate()
         engine = MockLocationEngine(this)
         movement = MovementController(engine, lifecycleScope)
         geocoder = GeocodeRepository(this)
+        lastLocation = LastLocationStore(this)
         overlay = OverlayHost(this)
 
         // 權限在這裡再確認一次：使用者可能事後撤銷，而 START_STICKY 會把我們重新拉起來。
@@ -191,14 +215,16 @@ class FloatingWindowService : LifecycleService() {
             return
         }
         observeStateForNotification()
+        observeStateForPersistence()
         showOverlay()
     }
 
-    /** 收掉模擬、移除懸浮視窗。 */
+    /** 收掉模擬、移除懸浮視窗，並把最後座標補存一次（可能落在節流間隔內還沒寫）。 */
     override fun onDestroy() {
         movement.stop()
         engine.stop()
         overlay.dismiss()
+        MockStateHolder.state.value.current?.let(lastLocation::save)
         super.onDestroy()
     }
 
