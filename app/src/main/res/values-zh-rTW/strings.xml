@@ -24,6 +24,7 @@
     <string name="panel_start">開始模擬</string>
     <string name="panel_stop">停止模擬</string>
     <string name="cd_collapse">收合面板</string>
+    <string name="cd_expand">展開面板</string>
     <string name="cd_close">關閉面板</string>
 
     <!-- Speed tiers -->

@@ -28,6 +28,7 @@
     <string name="panel_start">Start</string>
     <string name="panel_stop">Stop</string>
     <string name="cd_collapse">Collapse panel</string>
+    <string name="cd_expand">Expand panel</string>
     <string name="cd_close">Close panel</string>
 
     <!-- Speed tiers -->

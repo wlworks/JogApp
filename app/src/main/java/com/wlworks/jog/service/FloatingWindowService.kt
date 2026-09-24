@@ -35,7 +35,7 @@ import com.wlworks.jog.data.GeocodeRepository
 import com.wlworks.jog.mock.MockLocationEngine
 import com.wlworks.jog.mock.MovementController
 import com.wlworks.jog.state.MockStateHolder
-import com.wlworks.jog.ui.CollapsedBubble
+import com.wlworks.jog.ui.CollapsedPanel
 import com.wlworks.jog.ui.FloatingPanel
 import com.wlworks.jog.ui.PanelActions
 
@@ -271,10 +271,11 @@ class FloatingWindowService : LifecycleService() {
             }
 
             if (collapsed) {
-                CollapsedBubble(
+                CollapsedPanel(
                     running = state.running,
                     dragHandle = dragHandle,
-                    onExpand = { collapsed = false }
+                    onExpand = { collapsed = false },
+                    onStick = MockStateHolder::setStick
                 )
             } else {
                 FloatingPanel(

@@ -67,22 +67,49 @@ data class PanelActions(
     val onToggleRun: () -> Unit
 )
 
-/** 收合後的小圓球。 */
+/**
+ * 收合後的精簡面板：上方一顆狀態圓球（拖曳把手，點一下展開），下方保留搖桿。
+ * 封測回饋：收合後還是要能微調位置，不然每次推桿都得先展開、再收回去。
+ */
 @Composable
-fun CollapsedBubble(running: Boolean, dragHandle: Modifier, onExpand: () -> Unit) {
-    Box(
-        modifier = dragHandle
-            .size(52.dp)
-            .clip(RoundedCornerShape(50))
+fun CollapsedPanel(
+    running: Boolean,
+    dragHandle: Modifier,
+    onExpand: () -> Unit,
+    onStick: (Float, Float) -> Unit
+) {
+    // 寬度要寫死：overlay 視窗是 WRAP_CONTENT，裡面的 fillMaxWidth 會撐到整個螢幕寬
+    Column(
+        modifier = Modifier
+            .width(112.dp)
+            .clip(RoundedCornerShape(18.dp))
             .background(Panel)
-            .clickable(onClick = onExpand),
-        contentAlignment = Alignment.Center
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        val expandDescription = stringResource(R.string.cd_expand)
         Box(
-            Modifier
-                .size(16.dp)
-                .clip(RoundedCornerShape(50))
-                .background(if (running) Accent else Color.White.copy(alpha = 0.35f))
+            modifier = dragHandle
+                .fillMaxWidth()
+                .heightIn(min = 36.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onExpand)
+                .semantics { contentDescription = expandDescription },
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier
+                    .size(16.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(if (running) Accent else Color.White.copy(alpha = 0.35f))
+            )
+        }
+        Joystick(
+            accent = Accent,
+            enabled = running,
+            size = 96.dp,
+            onInput = onStick
         )
     }
 }
