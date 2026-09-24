@@ -29,6 +29,8 @@
     <string name="panel_stop">Stop</string>
     <string name="cd_collapse">Collapse panel</string>
     <string name="cd_expand">Expand panel</string>
+    <!-- %1$s 是依速度檔算出的距離範圍，例：80–250 m -->
+    <string name="panel_random_nearby">Random jump %1$s</string>
     <string name="cd_close">Close panel</string>
 
     <!-- Speed tiers -->
@@ -46,6 +48,20 @@
     <string name="msg_not_found">No match for \"%1$s\"</string>
     <string name="msg_geocoder_unavailable">Place search unavailable — check the network, or enter coordinates instead</string>
     <string name="label_coordinates">Coordinates %1$s</string>
+    <!-- %1$s 方位（compass_points）、%2$s 距離、%3$s 當時的速度檔 -->
+    <string name="msg_random_jumped">Random jump %2$s %1$s (%3$s)</string>
+
+    <!-- 八方位，索引對應 GeoMath.compassIndex：0 = N 順時針到 7 = NW -->
+    <string-array name="compass_points">
+        <item>north</item>
+        <item>northeast</item>
+        <item>east</item>
+        <item>southeast</item>
+        <item>south</item>
+        <item>southwest</item>
+        <item>west</item>
+        <item>northwest</item>
+    </string-array>
 
     <!-- Purpose statement and permission disclosures -->
     <string name="setup_purpose">Jog is a developer and QA tool for testing location-aware features such as geofences and movement handling, without leaving your desk. It only works after you choose it as the mock location app under Developer options. Jog never reads, stores, or uploads your real location, and it does not connect to the internet.</string>

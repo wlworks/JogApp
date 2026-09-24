@@ -32,7 +32,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.wlworks.jog.MainActivity
 import com.wlworks.jog.R
+import com.wlworks.jog.core.DistanceFormat
+import com.wlworks.jog.core.GeoMath
 import com.wlworks.jog.core.LatLng
+import com.wlworks.jog.core.RandomJump
 import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.data.GeocodeRepository
 import com.wlworks.jog.data.LastLocationStore
@@ -42,6 +45,7 @@ import com.wlworks.jog.state.MockStateHolder
 import com.wlworks.jog.ui.CollapsedPanel
 import com.wlworks.jog.ui.FloatingPanel
 import com.wlworks.jog.ui.PanelActions
+import kotlin.random.Random
 
 /**
  * 懸浮視窗 + 模擬定位的宿主。用前景服務是為了：
@@ -296,8 +300,10 @@ class FloatingWindowService : LifecycleService() {
             if (collapsed) {
                 CollapsedPanel(
                     running = state.running,
+                    speedTier = state.speedTier,
                     dragHandle = dragHandle,
                     onExpand = { collapsed = false },
+                    onRandomNearby = ::teleportRandomNearby,
                     onStick = MockStateHolder::setStick
                 )
             } else {
@@ -313,6 +319,7 @@ class FloatingWindowService : LifecycleService() {
                         },
                         onInputFocusChanged = overlay::setInputFocusable,
                         onQueryChange = MockStateHolder::setQuery,
+                        onRandomNearby = ::teleportRandomNearby,
                         onSearch = ::search,
                         onSpeed = MockStateHolder::setSpeed,
                         onStick = MockStateHolder::setStick,
@@ -321,6 +328,31 @@ class FloatingWindowService : LifecycleService() {
                 )
             }
         }
+    }
+
+    /**
+     * 以目前座標為中心，隨機挑一個方向，跳到 [RandomJump] 依目前速度檔算出的距離外。
+     * 沒在模擬時也能按 —— 走 applyTarget 會順便開始注入，行為和「定位到這裡」一致。
+     * 跳完把「往哪跳、跳多遠、當時哪一檔」寫進 resolvedLabel，讓使用者把距離和檔次連起來。
+     */
+    private fun teleportRandomNearby() {
+        val state = MockStateHolder.state.value
+        val origin = state.current
+        if (origin == null) {
+            MockStateHolder.message(getString(R.string.msg_need_target))
+            return
+        }
+        val bearing = Random.nextFloat() * 360f
+        val distance = RandomJump.pickDistance(state.speedTier)
+        val target = GeoMath.destination(from = origin, bearingDeg = bearing, distanceM = distance)
+        val summary = getString(
+            R.string.msg_random_jumped,
+            resources.getStringArray(R.array.compass_points)[GeoMath.compassIndex(bearing)],
+            DistanceFormat.single(distance),
+            getString(state.speedTier.labelRes)
+        )
+        MockStateHolder.update { it.copy(message = null, resolvedLabel = summary) }
+        applyTarget(target)
     }
 
     /** 開始／停止模擬。沒有起點座標時提示使用者先設定。 */

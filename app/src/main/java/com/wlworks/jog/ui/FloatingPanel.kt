@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,6 +46,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wlworks.jog.R
+import com.wlworks.jog.core.DistanceFormat
+import com.wlworks.jog.core.RandomJump
 import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.state.MockUiState
 import java.util.Locale
@@ -62,6 +68,7 @@ data class PanelActions(
      */
     val onInputFocusChanged: (Boolean) -> Unit,
     val onQueryChange: (String) -> Unit,
+    val onRandomNearby: () -> Unit,
     val onSearch: () -> Unit,
     val onSpeed: (SpeedTier) -> Unit,
     val onStick: (Float, Float) -> Unit,
@@ -75,8 +82,10 @@ data class PanelActions(
 @Composable
 fun CollapsedPanel(
     running: Boolean,
+    speedTier: SpeedTier,
     dragHandle: Modifier,
     onExpand: () -> Unit,
+    onRandomNearby: () -> Unit,
     onStick: (Float, Float) -> Unit
 ) {
     // 寬度要寫死：overlay 視窗是 WRAP_CONTENT，裡面的 fillMaxWidth 會撐到整個螢幕寬
@@ -111,6 +120,12 @@ fun CollapsedPanel(
             enabled = running,
             size = 96.dp,
             onInput = onStick
+        )
+        // 收合時放不下完整句子，只印範圍，和展開面板用同一套數字
+        RandomNearbyButton(
+            label = randomJumpRange(speedTier),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onRandomNearby
         )
     }
 }
@@ -232,6 +247,18 @@ fun FloatingPanel(
             }
         )
 
+        // ---- 隨機跳到附近 ----
+        // 緊貼在速度檔下方、範圍數字跟著檔次變：這兩件事有關聯要靠位置和數字讓人看出來，
+        // 光一顆 shuffle 圖示放在搜尋列旁邊沒人會知道距離是由檔次決定的。
+        RandomNearbyButton(
+            label = stringResource(R.string.panel_random_nearby, randomJumpRange(state.speedTier)),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                dismissKeyboard()
+                actions.onRandomNearby()
+            }
+        )
+
         // ---- 搖桿 ----
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Joystick(
@@ -341,4 +368,41 @@ private fun QueryField(
                 }
             }
     )
+}
+
+/** 該速度檔的隨機跳躍範圍字串，例：80–250 m、5–15 km。 */
+private fun randomJumpRange(tier: SpeedTier): String {
+    val range = RandomJump.rangeFor(tier)
+    return DistanceFormat.range(range.start, range.endInclusive)
+}
+
+/** 「隨機跳到附近」按鈕，展開與收合面板共用；[label] 帶著依速度檔算出的距離範圍。 */
+@Composable
+private fun RandomNearbyButton(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Row(
+        modifier = modifier
+            .heightIn(min = 36.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.White.copy(alpha = 0.10f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 文字已經說明用途，圖示不必再給 TalkBack 唸一次
+        Icon(
+            imageVector = Icons.Filled.Shuffle,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1
+        )
+    }
 }

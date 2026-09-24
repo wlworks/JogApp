@@ -22,6 +22,10 @@ object GeoMath {
         return (deg + 360f) % 360f
     }
 
+    /** 方位角換成八方位的索引：0 = 北、1 = 東北 … 7 = 西北，每格 45°，以正方向為中心。 */
+    fun compassIndex(bearingDeg: Float): Int =
+        (((bearingDeg % 360f + 360f) % 360f + 22.5f) / 45f).toInt() % 8
+
     /**
      * 從 [from] 沿 [bearingDeg]（正北 = 0，順時針）前進 [distanceM] 公尺後的座標。
      * 使用大圓航線 destination point 公式。

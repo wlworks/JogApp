@@ -25,6 +25,7 @@
     <string name="panel_stop">停止模擬</string>
     <string name="cd_collapse">收合面板</string>
     <string name="cd_expand">展開面板</string>
+    <string name="panel_random_nearby">隨機跳 %1$s</string>
     <string name="cd_close">關閉面板</string>
 
     <!-- Speed tiers -->
@@ -42,6 +43,18 @@
     <string name="msg_not_found">找不到「%1$s」</string>
     <string name="msg_geocoder_unavailable">目前無法搜尋地名，請確認網路或直接輸入經緯度</string>
     <string name="label_coordinates">座標 %1$s</string>
+    <string name="msg_random_jumped">隨機往%1$s跳了 %2$s（%3$s）</string>
+
+    <string-array name="compass_points">
+        <item>北</item>
+        <item>東北</item>
+        <item>東</item>
+        <item>東南</item>
+        <item>南</item>
+        <item>西南</item>
+        <item>西</item>
+        <item>西北</item>
+    </string-array>
 
     <!-- Purpose statement and permission disclosures -->
     <string name="setup_purpose">Jog 是給開發者與 QA 用的定位測試工具，用來驗證地理圍欄、移動處理等定位相關功能，不必真的跑到現場。必須先在開發者選項把 Jog 選為模擬位置資訊應用程式才能運作。Jog 不會讀取、儲存或上傳你的真實位置，也不會連線到網際網路。</string>

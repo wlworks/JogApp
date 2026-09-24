@@ -27,7 +27,7 @@
 | `state/MockState.kt` | 程序內唯一狀態來源 |
 | `service/OverlayHost.kt` | Compose 掛進 WindowManager 的宿主 |
 | `service/FloatingWindowService.kt` | 前景服務，串起以上所有東西 |
-| `ui/` | 懸浮面板（展開／收合兩種型態，收合仍保留搖桿）、搖桿、速度選擇器 |
+| `ui/` | 懸浮面板（展開／收合兩種型態，收合仍保留搖桿與「隨機跳到附近」鈕）、搖桿、速度選擇器 |
 | `res/values/` | 英文字串（預設）；繁中在 `values-zh-rTW/` |
 | `res/mipmap-anydpi-v26/` | adaptive icon；前景向量在 `drawable/ic_launcher_foreground.xml` |
 | `docs/` | GitHub Pages：首頁與隱私權政策（英文 + 繁中） |

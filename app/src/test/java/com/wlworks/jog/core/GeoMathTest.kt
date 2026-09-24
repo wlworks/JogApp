@@ -136,6 +136,27 @@ class GeoMathTest {
         )
     }
 
+    // ---- compassIndex ----
+
+    @Test
+    fun `compass index centres each sector on its cardinal direction`() {
+        assertEquals(0, GeoMath.compassIndex(0f))
+        assertEquals(0, GeoMath.compassIndex(22.4f))
+        assertEquals(1, GeoMath.compassIndex(22.5f))
+        assertEquals(2, GeoMath.compassIndex(90f))
+        assertEquals(4, GeoMath.compassIndex(180f))
+        assertEquals(6, GeoMath.compassIndex(270f))
+        assertEquals(7, GeoMath.compassIndex(337.4f))
+        assertEquals(0, GeoMath.compassIndex(337.5f)) // 北的扇區從 337.5 開始
+        assertEquals(0, GeoMath.compassIndex(360f))
+    }
+
+    @Test
+    fun `compass index tolerates negative and oversized bearings`() {
+        assertEquals(7, GeoMath.compassIndex(-45f))
+        assertEquals(2, GeoMath.compassIndex(450f))
+    }
+
     // ---- LatLng ----
 
     @Test
