@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wlworks.jog.R
@@ -198,6 +199,17 @@ fun FloatingPanel(
                     modifier = Modifier.size(16.dp)
                 )
             }
+        }
+
+        // ---- 解析結果（不寫回輸入框，只顯示）----
+        state.resolvedLabel?.let {
+            Text(
+                text = "→ $it",
+                color = Accent.copy(alpha = 0.85f),
+                fontSize = 11.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
 
         // ---- 目前座標 ----

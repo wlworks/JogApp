@@ -251,13 +251,10 @@ class FloatingWindowService : LifecycleService() {
             when (outcome) {
                 is GeocodeRepository.Outcome.Found -> {
                     val first = outcome.hits.first()
+                    // 使用者打的字留在輸入框，解析結果另外顯示。以前會把 label 寫回輸入框，
+                    // 結果封測有人再按一次「定位」就被帶到別處 —— 見 GeocodeHit.label 的說明。
                     MockStateHolder.update {
-                        // 座標解析出來的 label 帶有「座標 」前綴，寫回輸入框會讓
-                        // 下一次搜尋解析失敗，所以只回填地名查詢的結果
-                        it.copy(
-                            message = null,
-                            query = if (first.fromCoordinates) it.query else first.label
-                        )
+                        it.copy(message = null, resolvedLabel = first.label)
                     }
                     applyTarget(first.point)
                 }

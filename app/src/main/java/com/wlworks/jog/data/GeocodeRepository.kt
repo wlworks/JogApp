@@ -17,8 +17,10 @@ import java.util.Locale
 import kotlin.coroutines.resume
 
 data class GeocodeHit(
-    /** 直接由座標解析而來（而非地名查詢）。UI 不應把這種 label 寫回輸入框。 */
-    val fromCoordinates: Boolean = false,
+    /**
+     * 給人看的解析結果。**只用來顯示，不要拿去再查一次**：Geocoder 的 label 不保證能
+     * 查回同一點 —— 「淺草寺」解析正確，但把它的 label 再丟回去查會掉到台東區中心（上野）。
+     */
     val label: String,
     val point: LatLng
 )
@@ -50,7 +52,7 @@ class GeocodeRepository(context: Context) {
         data class Found(val hits: List<GeocodeHit>) : Outcome
         /** 查得動但沒結果。 */
         data object NoMatch : Outcome
-        /** 這台裝置沒有 geocoding backend，或逾時無回應。 */
+        /** 這台裝置沒有 geocoding backend、backend 回報錯誤（多半是沒網路），或逾時無回應。 */
         data object Unavailable : Outcome
     }
 
@@ -77,9 +79,7 @@ class GeocodeRepository(context: Context) {
 
         CoordinateParser.parse(trimmed)?.let {
             val label = appContext.getString(R.string.label_coordinates, fmt(it))
-            return Outcome.Found(
-                listOf(GeocodeHit(fromCoordinates = true, label = label, point = it))
-            )
+            return Outcome.Found(listOf(GeocodeHit(label = label, point = it)))
         }
 
         if (geocoder == null) return Outcome.Unavailable
@@ -90,12 +90,16 @@ class GeocodeRepository(context: Context) {
         return if (hits.isEmpty()) Outcome.NoMatch else Outcome.Found(hits)
     }
 
-    /** 呼叫系統 Geocoder，依 API 等級走 callback 或阻塞版本，失敗一律回空清單。 */
-    private suspend fun systemGeocode(name: String): List<GeocodeHit> {
-        val gc = geocoder ?: return emptyList()
+    /**
+     * 呼叫系統 Geocoder，依 API 等級走 callback 或阻塞版本。
+     * 回 null 代表 backend 出錯或拋例外（沒網路時 Play 服務會回 UNAVAILABLE），
+     * 和「查了但沒結果」的空清單分開 —— 混在一起使用者會看到「找不到」而一直換字重試。
+     */
+    private suspend fun systemGeocode(name: String): List<GeocodeHit>? {
+        val gc = geocoder ?: return null
         return runCatchingCancellable {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                suspendCancellableCoroutine { cont ->
+                suspendCancellableCoroutine<List<GeocodeHit>?> { cont ->
                     gc.getFromLocationName(name, MAX_RESULTS, object : Geocoder.GeocodeListener {
                         override fun onGeocode(addresses: MutableList<Address>) {
                             if (cont.isActive) cont.resume(addresses.map(::toHit))
@@ -103,7 +107,7 @@ class GeocodeRepository(context: Context) {
 
                         override fun onError(errorMessage: String?) {
                             Log.w(TAG, "geocode error: $errorMessage")
-                            if (cont.isActive) cont.resume(emptyList())
+                            if (cont.isActive) cont.resume(null)
                         }
                     })
                 }
@@ -115,17 +119,22 @@ class GeocodeRepository(context: Context) {
             }
         }.getOrElse {
             Log.w(TAG, "system geocode failed", it)
-            emptyList()
+            null
         }
     }
 
-    /** 把系統 Address 攤平成一行可讀的地名。 */
+    /**
+     * 把系統 Address 攤平成一行可讀的地名。優先用 Geocoder 排好版的 addressLine；
+     * 自己用 featureName 拼的話，POI 的 featureName 常常只是門牌號
+     * （淺草寺回「1」→ 拼出「1, Taito City, 日本」），完全看不出是哪裡。
+     */
     private fun toHit(address: Address) = GeocodeHit(
-        label = listOfNotNull(
-            address.featureName,
-            address.locality ?: address.subAdminArea,
-            address.countryName
-        ).distinct().joinToString(", "),
+        label = address.getAddressLine(0)?.takeIf { it.isNotBlank() }
+            ?: listOfNotNull(
+                address.featureName,
+                address.locality ?: address.subAdminArea,
+                address.countryName
+            ).distinct().joinToString(", "),
         point = LatLng(address.latitude, address.longitude)
     )
 }

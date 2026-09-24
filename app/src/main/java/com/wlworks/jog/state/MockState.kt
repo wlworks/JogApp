@@ -28,6 +28,8 @@ data class MockUiState(
     val message: String? = null,
     val needsMockAppSetup: Boolean = false,
     val query: String = "",
+    /** 最近一次成功解析到的地址，只給面板顯示；null 表示還沒搜過或是從上次座標還原。 */
+    val resolvedLabel: String? = null,
     val running: Boolean = false,
     val searching: Boolean = false,
     val speedTier: SpeedTier = SpeedTier.DEFAULT,

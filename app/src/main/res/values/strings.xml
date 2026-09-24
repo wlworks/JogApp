@@ -44,7 +44,7 @@
     <string name="msg_start_failed">Could not start: %1$s</string>
     <string name="msg_need_target">Enter a place or coordinates first</string>
     <string name="msg_not_found">No match for \"%1$s\"</string>
-    <string name="msg_geocoder_unavailable">This device cannot search by place name — enter coordinates instead</string>
+    <string name="msg_geocoder_unavailable">Place search unavailable — check the network, or enter coordinates instead</string>
     <string name="label_coordinates">Coordinates %1$s</string>
 
     <!-- Purpose statement and permission disclosures -->

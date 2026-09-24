@@ -40,7 +40,7 @@
     <string name="msg_start_failed">啟動失敗：%1$s</string>
     <string name="msg_need_target">請先輸入地點或座標</string>
     <string name="msg_not_found">找不到「%1$s」</string>
-    <string name="msg_geocoder_unavailable">這台裝置無法搜尋地名，請直接輸入經緯度</string>
+    <string name="msg_geocoder_unavailable">目前無法搜尋地名，請確認網路或直接輸入經緯度</string>
     <string name="label_coordinates">座標 %1$s</string>
 
     <!-- Purpose statement and permission disclosures -->
