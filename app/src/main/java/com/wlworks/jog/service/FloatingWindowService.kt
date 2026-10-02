@@ -93,7 +93,11 @@ class FloatingWindowService : LifecycleService() {
     /** 以 [point] 為起點開始注入，並處理未被選為 mock app 等失敗情形。 */
     private fun applyTarget(point: LatLng) {
         when (val result = engine.start()) {
-            MockLocationEngine.StartResult.Ok -> movement.teleport(point)
+            MockLocationEngine.StartResult.Ok -> {
+                // 成功了就把上一次「請先選為 mock app」的提示收掉，不然它會一直掛在面板底部
+                MockStateHolder.update { it.copy(message = null, needsMockAppSetup = false) }
+                movement.teleport(point)
+            }
             MockLocationEngine.StartResult.NotMockApp -> {
                 MockStateHolder.update {
                     it.copy(

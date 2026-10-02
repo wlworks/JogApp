@@ -1,10 +1,12 @@
 package com.wlworks.jog.mock
 
+import android.app.AppOpsManager
 import android.content.Context
 import android.location.Location
 import android.location.LocationManager
 import android.location.provider.ProviderProperties
 import android.os.Build
+import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import com.google.android.gms.location.LocationServices
@@ -17,8 +19,9 @@ import com.wlworks.jog.core.LatLng
  *  1. LocationManager test provider  → 走 android.location API 的 App（含大多數系統元件）
  *  2. FusedLocationProviderClient.setMockMode → 走 Play Services 的 App（Google Maps 等）
  *
- * 前提：本 App 必須在「開發者選項 > 選取模擬位置資訊應用程式」被選中，
- * 否則 addTestProvider 會丟 SecurityException。
+ * 前提：本 App 必須在「開發者選項 > 選取模擬位置資訊應用程式」被選中。
+ * 沒被選中時舊版系統的 addTestProvider 會丟 SecurityException，Android 12+ 則是靜靜不做事，
+ * 所以 [start] 會先自己檢查 appop。
  */
 class MockLocationEngine(private val context: Context) {
 
@@ -88,6 +91,28 @@ class MockLocationEngine(private val context: Context) {
     }
 
     /**
+     * 本 App 目前是否被選為 mock location app（appop MOCK_LOCATION 為 allowed）。
+     *
+     * 不能靠 addTestProvider 丟 SecurityException 來判斷：Android 12 起系統在 appop 沒過時
+     * 是**靜靜 return**，不丟例外。只靠例外的話 [start] 會回報成功、面板顯示模擬中，
+     * 實際上一筆座標都沒送出去，使用者也看不到「請到開發者選項選擇 Jog」的提示。
+     */
+    private fun isMockLocationApp(): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_MOCK_LOCATION, Process.myUid(), context.packageName
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_MOCK_LOCATION, Process.myUid(), context.packageName
+            )
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    /**
      * 推一筆座標。必須被高頻率重複呼叫（見 [MovementController]），
      * 否則消費端會判定位置過期而退回真實定位。
      */
@@ -145,6 +170,11 @@ class MockLocationEngine(private val context: Context) {
     /** 開啟兩條注入路徑。沒被選為 mock location app 會回 [StartResult.NotMockApp]。 */
     fun start(): StartResult {
         if (started) return StartResult.Ok
+        // 先問 appop，理由見 isMockLocationApp；下面的 SecurityException 分支留給舊版系統
+        if (!isMockLocationApp()) {
+            Log.w(TAG, "not selected as mock location app (appop)")
+            return StartResult.NotMockApp
+        }
         return try {
             providers.forEach { registerProvider(it) }
             runCatching { fusedClient.setMockMode(true) }
