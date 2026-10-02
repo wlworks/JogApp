@@ -1,0 +1,5 @@
+<resources>
+    <!-- debug 版和 Play 版並存（applicationId 多了 .debug），名稱要分得出來，
+         不然桌面和「選取模擬位置資訊應用程式」清單裡會有兩個一模一樣的 Jog -->
+    <string name="app_name" translatable="false">Jog Debug</string>
+</resources>

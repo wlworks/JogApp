@@ -49,6 +49,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 手機上的封測版是 Play 重新簽過的，本機 build 簽章對不上、蓋不上去。
+            // debug 版另起一個 applicationId 和它並存，實機測試才不必先移除封測版。
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

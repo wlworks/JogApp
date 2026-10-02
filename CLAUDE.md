@@ -77,14 +77,20 @@ python tools/check_style.py
 
 ## 實機測試
 
+debug 版的 applicationId 是 **`com.wlworks.jog.debug`**（桌面上叫 Jog Debug），和 Play 裝的封測版
+`com.wlworks.jog` 並存。封測版是 Play 重新簽過的，本機 build 不論 debug 或 release 都蓋不上去
+（`INSTALL_FAILED_UPDATE_INCOMPATIBLE`），所以實機測試一律對 debug 套件名下指令，不要去動封測版。
+
 測試用的權限全部可以用 adb 給，**不需要**手動點開發者選項：
 
 ```bash
-adb shell appops set com.wlworks.jog SYSTEM_ALERT_WINDOW allow
-adb shell appops set com.wlworks.jog android:mock_location allow
-adb shell pm grant com.wlworks.jog android.permission.ACCESS_FINE_LOCATION
-adb shell pm grant com.wlworks.jog android.permission.POST_NOTIFICATIONS
+adb shell appops set com.wlworks.jog.debug SYSTEM_ALERT_WINDOW allow
+adb shell appops set com.wlworks.jog.debug android:mock_location allow
+adb shell pm grant com.wlworks.jog.debug android.permission.ACCESS_FINE_LOCATION
+adb shell pm grant com.wlworks.jog.debug android.permission.POST_NOTIFICATIONS
 ```
+
+用 adb 給 appop 不會動到封測版的設定（實測兩個套件可以同時是 allow）；開發者選項的選單才是單選。
 
 設定畫面第四列（開發者選項）永遠顯示箭頭而非打勾，那是 `granted = null` 的
 刻意設計 —— App 偵測不到那個選擇，不是 bug。
@@ -109,7 +115,7 @@ adb shell pm grant com.wlworks.jog android.permission.POST_NOTIFICATIONS
   ```
 
 - 測繁中不必動系統語系，用 per-app locale：
-  `adb shell cmd locale set-app-locales com.wlworks.jog --locales zh-TW`，
+  `adb shell cmd locale set-app-locales com.wlworks.jog.debug --locales zh-TW`，
   還原傳空字串。
 
 測完請把裝置還原：mock provider 清空、`mock_location` appop 設回 `default`。
