@@ -4,6 +4,7 @@
     <string name="notif_title">Jog 模擬定位</string>
     <string name="notif_text">待命中</string>
     <string name="notif_text_running">模擬中 · %1$s</string>
+    <string name="notif_text_auto">自動移動中 · %1$s</string>
     <string name="notif_action_stop">停止</string>
 
     <!-- Setup screen -->
@@ -27,6 +28,8 @@
     <string name="cd_expand">展開面板</string>
     <string name="panel_random_nearby">隨機跳 %1$s</string>
     <string name="cd_close">關閉面板</string>
+    <string name="panel_auto_move">自動移動</string>
+    <string name="panel_auto_moving">自動移動中 · 推搖桿可接手方向</string>
 
     <!-- Speed tiers -->
     <string name="speed_creep">蝸行</string>

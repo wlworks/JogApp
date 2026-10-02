@@ -113,8 +113,8 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
-    /** 建立前景服務通知，必要時順便補上通知頻道。內文依模擬狀態顯示「待命」或目前速度檔。 */
-    private fun buildNotification(running: Boolean, tier: SpeedTier): Notification {
+    /** 建立前景服務通知，必要時順便補上通知頻道。內文依模擬狀態顯示「待命」、目前速度檔或自動移動中。 */
+    private fun buildNotification(running: Boolean, tier: SpeedTier, auto: Boolean): Notification {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java)
             if (manager.getNotificationChannel(CHANNEL_ID) == null) {
@@ -135,10 +135,10 @@ class FloatingWindowService : LifecycleService() {
             this, 1, Intent(this, FloatingWindowService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        val text = if (running) {
-            getString(R.string.notif_text_running, getString(tier.labelRes))
-        } else {
-            getString(R.string.notif_text)
+        val text = when {
+            running && auto -> getString(R.string.notif_text_auto, getString(tier.labelRes))
+            running -> getString(R.string.notif_text_running, getString(tier.labelRes))
+            else -> getString(R.string.notif_text)
         }
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.notif_title))
@@ -161,16 +161,16 @@ class FloatingWindowService : LifecycleService() {
         this, android.Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
-    /** 模擬開始／停止或切換速度檔時更新常駐通知內文。座標變化不更新，避免每秒刷三次通知。 */
+    /** 模擬開始／停止、切換速度檔或自動移動時更新常駐通知內文。座標變化不更新，避免每秒刷三次通知。 */
     private fun observeStateForNotification() {
         lifecycleScope.launch {
             MockStateHolder.state
-                .map { it.running to it.speedTier }
+                .map { Triple(it.running, it.speedTier, it.autoMove) }
                 .distinctUntilChanged()
                 .drop(1) // 第一份已經用在 startForeground
-                .collect { (running, tier) ->
+                .collect { (running, tier, auto) ->
                     getSystemService(NotificationManager::class.java)
-                        .notify(NOTIF_ID, buildNotification(running, tier))
+                        .notify(NOTIF_ID, buildNotification(running, tier, auto))
                 }
         }
     }
@@ -209,7 +209,7 @@ class FloatingWindowService : LifecycleService() {
         val started = runCatching {
             // 狀態是行程層級的，Service 被 START_STICKY 拉起時可能已經在模擬中
             val state = MockStateHolder.state.value
-            val notification = buildNotification(state.running, state.speedTier)
+            val notification = buildNotification(state.running, state.speedTier, state.autoMove)
             // Android 10+ 起前景服務必須在啟動時就宣告 type
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
@@ -303,6 +303,7 @@ class FloatingWindowService : LifecycleService() {
 
             if (collapsed) {
                 CollapsedPanel(
+                    autoMove = state.autoMove,
                     running = state.running,
                     speedTier = state.speedTier,
                     dragHandle = dragHandle,
@@ -327,6 +328,7 @@ class FloatingWindowService : LifecycleService() {
                         onSearch = ::search,
                         onSpeed = MockStateHolder::setSpeed,
                         onStick = MockStateHolder::setStick,
+                        onToggleAuto = ::toggleAutoMove,
                         onToggleRun = ::toggleRun
                     )
                 )
@@ -357,6 +359,31 @@ class FloatingWindowService : LifecycleService() {
         )
         MockStateHolder.update { it.copy(message = null, resolvedLabel = summary) }
         applyTarget(target)
+    }
+
+    /**
+     * 開／關自動移動。關掉只是交還方向，模擬繼續跑；要整個停下來按「停止模擬」。
+     * 還沒在模擬時按下去會順便開始注入，起點是目前座標。
+     *
+     * 開和關都順手清掉 resolvedLabel：那行字講的是「上次定位到哪／上次往哪跳了多遠」，
+     * 自動走過一段之後已經和目前位置對不上。自動移動期間面板改顯示「自動移動中」。
+     */
+    private fun toggleAutoMove() {
+        val state = MockStateHolder.state.value
+        if (state.autoMove) {
+            MockStateHolder.update { it.copy(autoMove = false, resolvedLabel = null) }
+            return
+        }
+        val origin = state.current
+        if (origin == null) {
+            MockStateHolder.message(getString(R.string.msg_need_target))
+            return
+        }
+        if (!state.running) applyTarget(origin)
+        // applyTarget 可能失敗（沒被選為 mock app），沒跑起來就不要亮自動移動
+        MockStateHolder.update {
+            it.copy(autoMove = it.running, resolvedLabel = if (it.running) null else it.resolvedLabel)
+        }
     }
 
     /** 開始／停止模擬。沒有起點座標時提示使用者先設定。 */

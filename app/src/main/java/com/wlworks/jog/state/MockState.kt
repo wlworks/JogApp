@@ -18,6 +18,8 @@ data class StickInput(val x: Float = 0f, val y: Float = 0f) {
 }
 
 data class MockUiState(
+    /** 自動移動：搖桿沒推時由 AutoRoam 接手方向。只在 running 時有意義，停止模擬會一併關掉。 */
+    val autoMove: Boolean = false,
     val bearing: Float = 0f,
     val current: LatLng? = null,
     /**

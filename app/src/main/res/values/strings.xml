@@ -8,6 +8,7 @@
     <string name="notif_title">Jog mock location</string>
     <string name="notif_text">Standing by</string>
     <string name="notif_text_running">Simulating · %1$s</string>
+    <string name="notif_text_auto">Auto-moving · %1$s</string>
     <string name="notif_action_stop">Stop</string>
 
     <!-- Setup screen -->
@@ -32,6 +33,8 @@
     <!-- %1$s 是依速度檔算出的距離範圍，例：80–250 m -->
     <string name="panel_random_nearby">Random jump %1$s</string>
     <string name="cd_close">Close panel</string>
+    <string name="panel_auto_move">Auto move</string>
+    <string name="panel_auto_moving">Auto-moving · push the stick to steer</string>
 
     <!-- Speed tiers -->
     <string name="speed_creep">Creep</string>

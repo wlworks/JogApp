@@ -70,7 +70,7 @@ python tools/check_style.py
 ./gradlew :app:bundleRelease        # 簽章的 release AAB；簽章讀 keystore.properties（gitignore），沒有就不簽
 ```
 
-單元測試只涵蓋 `core/`（`GeoMath`、`CoordinateParser`）。`MockLocationEngine`、
+單元測試只涵蓋 `core/`（`GeoMath`、`CoordinateParser`、`AutoRoam` 等純邏輯）。`MockLocationEngine`、
 `MovementController` 與 Compose UI 沒有自動化覆蓋，改動這些要實機驗證。
 
 編譯時 AGP 8.9.0 會警告 `compileSdk = 36` 超出測試範圍，這是已知的，不影響建置。

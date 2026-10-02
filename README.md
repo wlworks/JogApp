@@ -20,14 +20,15 @@
 | `core/GeoMath.kt` | 大圓航線推算、搖桿向量 → 方位角 |
 | `core/SpeedTier.kt` | 速度檔次定義 |
 | `core/CoordinateParser.kt` | 十進位 / DMS 座標解析 |
+| `core/AutoRoam.kt` | 自動移動的方向與油門產生器：分段隨機轉向，速度仍由速度檔決定 |
 | `data/GeocodeRepository.kt` | 座標解析 → 系統 Geocoder（4s timeout）。不打任何外部服務 |
 | `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化；App 唯一寫入磁碟的東西 |
 | `mock/MockLocationEngine.kt` | LocationManager test provider + Fused mock mode |
-| `mock/MovementController.kt` | 10Hz tick，把搖桿輸入換成座標位移 |
+| `mock/MovementController.kt` | 10Hz tick，把搖桿輸入或自動移動換成座標位移 |
 | `state/MockState.kt` | 程序內唯一狀態來源 |
 | `service/OverlayHost.kt` | Compose 掛進 WindowManager 的宿主 |
 | `service/FloatingWindowService.kt` | 前景服務，串起以上所有東西 |
-| `ui/` | 懸浮面板（展開／收合兩種型態，收合仍保留搖桿與「隨機跳到附近」鈕）、搖桿、速度選擇器 |
+| `ui/` | 懸浮面板（展開／收合兩種型態，收合仍保留搖桿與「隨機跳到附近」鈕）、搖桿、速度選擇器、自動移動開關 |
 | `res/values/` | 英文字串（預設）；繁中在 `values-zh-rTW/` |
 | `res/mipmap-anydpi-v26/` | adaptive icon；前景向量在 `drawable/ic_launcher_foreground.xml` |
 | `docs/` | GitHub Pages：首頁與隱私權政策（英文 + 繁中） |
@@ -56,6 +57,7 @@
 
 - 我的最愛（目前只記上一次的座標）
 - 路線錄製與回放
+- 自動移動的活動範圍限制（目前是純隨機遊走，時間久了會越走越遠）
 - 抖動模擬（固定座標太乾淨，容易被反作弊偵測；測試場景多半不需要）
 - 高度／室內樓層
 - 單元測試（`GeoMath`、`CoordinateParser` 最值得先補）

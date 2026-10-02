@@ -72,15 +72,18 @@ data class PanelActions(
     val onSearch: () -> Unit,
     val onSpeed: (SpeedTier) -> Unit,
     val onStick: (Float, Float) -> Unit,
+    val onToggleAuto: () -> Unit,
     val onToggleRun: () -> Unit
 )
 
 /**
  * 收合後的精簡面板：上方一顆狀態圓球（拖曳把手，點一下展開），下方保留搖桿。
  * 封測回饋：收合後還是要能微調位置，不然每次推桿都得先展開、再收回去。
+ * 自動移動中圓球外面多一圈，收合時也看得出來它自己在走。
  */
 @Composable
 fun CollapsedPanel(
+    autoMove: Boolean,
     running: Boolean,
     speedTier: SpeedTier,
     dragHandle: Modifier,
@@ -109,11 +112,19 @@ fun CollapsedPanel(
             contentAlignment = Alignment.Center
         ) {
             Box(
-                Modifier
-                    .size(16.dp)
+                modifier = Modifier
+                    .size(26.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(if (running) Accent else Color.White.copy(alpha = 0.35f))
-            )
+                    .background(if (autoMove) Accent.copy(alpha = 0.3f) else Color.Transparent),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(if (running) Accent else Color.White.copy(alpha = 0.35f))
+                )
+            }
         }
         Joystick(
             accent = Accent,
@@ -217,7 +228,13 @@ fun FloatingPanel(
         }
 
         // ---- 解析結果（不寫回輸入框，只顯示）----
-        state.resolvedLabel?.let {
+        // 自動移動中一律換成「自動移動中」：定位／隨機跳的結果描述的是出發點，走遠了就不對了
+        val label = if (state.autoMove) {
+            stringResource(R.string.panel_auto_moving)
+        } else {
+            state.resolvedLabel
+        }
+        label?.let {
             Text(
                 text = "→ $it",
                 color = Accent.copy(alpha = 0.85f),
@@ -259,11 +276,24 @@ fun FloatingPanel(
             }
         )
 
+        // ---- 自動移動 ----
+        // 和隨機跳一樣跟著速度檔走，所以也放在速度檔下面
+        PillButton(
+            text = stringResource(R.string.panel_auto_move),
+            modifier = Modifier.fillMaxWidth(),
+            filled = state.autoMove,
+            onClick = {
+                dismissKeyboard()
+                actions.onToggleAuto()
+            }
+        )
+
         // ---- 搖桿 ----
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Joystick(
                 accent = Accent,
-                // 沒按「開始」時推桿不會改變座標，索性置灰並停接觸控
+                // 沒按「開始」時推桿不會改變座標，索性置灰並停接觸控。
+                // 自動移動中仍可推：推桿暫時接手方向，放開後從那個方向繼續自動走
                 enabled = state.running,
                 onInput = { x, y ->
                     dismissKeyboard()   // queryFocused 為 false 時是 no-op
