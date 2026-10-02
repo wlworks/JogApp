@@ -18,6 +18,8 @@
     <string name="setup_location">Location access</string>
     <string name="setup_notification">Notifications</string>
     <string name="setup_mock_app">Developer options → Select mock location app → Jog</string>
+    <string name="setup_health">Health Connect write access (optional)</string>
+    <string name="setup_health_unavailable">Health Connect is not available on this device</string>
     <string name="setup_start">Start floating panel</string>
     <string name="setup_stop">Stop floating panel</string>
 
@@ -34,6 +36,9 @@
     <string name="panel_random_nearby">Random jump %1$s</string>
     <string name="cd_close">Close panel</string>
     <string name="panel_auto_move">Auto move</string>
+    <string name="panel_health_sync">Health sync</string>
+    <!-- %1$d 步數、%2$s 距離（DistanceFormat.single） -->
+    <string name="panel_health_written">Health sync on (Walk only) · %1$d steps · %2$s written</string>
     <string name="panel_auto_moving">Auto-moving · push the stick to steer</string>
 
     <!-- Speed tiers -->
@@ -54,6 +59,10 @@
     <!-- %1$s 方位（compass_points）、%2$s 距離、%3$s 當時的速度檔 -->
     <string name="msg_random_jumped">Random jump %2$s %1$s (%3$s)</string>
 
+    <string name="msg_health_unavailable">Health Connect is not available on this device</string>
+    <string name="msg_health_need_permission">Allow Jog to write steps and distance to Health Connect, then tap Health sync again</string>
+    <string name="msg_health_write_failed">Could not write to Health Connect — sync turned off. Check the permission in the Jog app</string>
+
     <!-- 八方位，索引對應 GeoMath.compassIndex：0 = N 順時針到 7 = NW -->
     <string-array name="compass_points">
         <item>north</item>
@@ -71,6 +80,8 @@
     <string name="setup_privacy_policy">Privacy policy</string>
     <string name="disclosure_location_title">Why Jog needs location access</string>
     <string name="disclosure_location_body">Android requires the location permission to register a mock location provider. Jog uses it only for that: it does not read your real location, and nothing leaves this device.</string>
+    <string name="disclosure_health_title">Why Jog asks for Health Connect</string>
+    <string name="disclosure_health_body">Health sync is optional. When you turn it on, Jog writes the steps and distance of the simulated movement to Health Connect, so you can test apps that read them. These are simulated test values, not measurements. Jog never reads your health data, and nothing leaves this device.</string>
     <string name="disclosure_continue">Continue</string>
     <string name="disclosure_cancel">Not now</string>
 </resources>

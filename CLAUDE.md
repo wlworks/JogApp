@@ -70,10 +70,10 @@ python tools/check_style.py
 ./gradlew :app:bundleRelease        # 簽章的 release AAB；簽章讀 keystore.properties（gitignore），沒有就不簽
 ```
 
-單元測試只涵蓋 `core/`（`GeoMath`、`CoordinateParser`、`AutoRoam` 等純邏輯）。`MockLocationEngine`、
-`MovementController` 與 Compose UI 沒有自動化覆蓋，改動這些要實機驗證。
+單元測試只涵蓋 `core/`（`GeoMath`、`CoordinateParser`、`AutoRoam`、`HealthTally` 等純邏輯）。`MockLocationEngine`、
+`MovementController`、`HealthConnectStore` 與 Compose UI 沒有自動化覆蓋，改動這些要實機驗證。
 
-編譯時 AGP 8.9.0 會警告 `compileSdk = 36` 超出測試範圍，這是已知的，不影響建置。
+編譯時 AGP 8.9.1 會警告 `compileSdk = 36` 超出測試範圍，這是已知的，不影響建置。
 
 ## 實機測試
 
@@ -88,6 +88,8 @@ adb shell appops set com.wlworks.jog.debug SYSTEM_ALERT_WINDOW allow
 adb shell appops set com.wlworks.jog.debug android:mock_location allow
 adb shell pm grant com.wlworks.jog.debug android.permission.ACCESS_FINE_LOCATION
 adb shell pm grant com.wlworks.jog.debug android.permission.POST_NOTIFICATIONS
+adb shell pm grant com.wlworks.jog.debug android.permission.health.WRITE_STEPS      # Health 同步才需要
+adb shell pm grant com.wlworks.jog.debug android.permission.health.WRITE_DISTANCE
 ```
 
 用 adb 給 appop 不會動到封測版的設定（實測兩個套件可以同時是 allow）；開發者選項的選單才是單選。
@@ -114,6 +116,10 @@ adb shell pm grant com.wlworks.jog.debug android.permission.POST_NOTIFICATIONS
   adb shell appops set com.android.shell android:mock_location default
   ```
 
+- **Health 同步寫進去的資料只能到 Health Connect 自己的畫面看**（Jog 沒有讀取權限）：
+  `adb shell am start -a android.health.connect.action.HEALTH_HOME_SETTINGS` → Data and access →
+  Steps / Distance，來源會標 Jog Debug。每 60 秒才寫一次，關掉同步或關面板會立刻補寫。
+  測試資料會留在裝置的 Health Connect 裡，要清掉得在同一個畫面手動刪。
 - 測繁中不必動系統語系，用 per-app locale：
   `adb shell cmd locale set-app-locales com.wlworks.jog.debug --locales zh-TW`，
   還原傳空字串。

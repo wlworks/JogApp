@@ -24,26 +24,37 @@ import com.wlworks.jog.core.SpeedTier
 /** 每列幾顆。6 個檔次剛好排成 2x3。 */
 private const val PER_ROW = 3
 
-/** 單一檔次藥丸。用 weight 撐成等寬，文字置中限一行。 */
+/** 單一檔次藥丸。用 weight 撐成等寬，文字置中限一行。enabled 為 false 時置灰且不接觸控。 */
 @Composable
 private fun SpeedPill(
     tier: SpeedTier,
     active: Boolean,
     accent: Color,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Text(
         text = stringResource(tier.labelRes),
         fontSize = 11.sp,
         fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-        color = if (active) Color.Black else Color.White.copy(alpha = 0.75f),
+        color = when {
+            active -> Color.Black
+            enabled -> Color.White.copy(alpha = 0.75f)
+            else -> Color.White.copy(alpha = 0.25f)
+        },
         textAlign = TextAlign.Center,
         maxLines = 1,
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(if (active) accent else Color.White.copy(alpha = 0.08f))
-            .clickable(onClick = onClick)
+            .background(
+                when {
+                    active -> accent
+                    enabled -> Color.White.copy(alpha = 0.08f)
+                    else -> Color.White.copy(alpha = 0.03f)
+                }
+            )
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 6.dp)
     )
 }
@@ -53,12 +64,15 @@ private fun SpeedPill(
  *
  * 六個檔次擠不進 268dp 面板的單一橫列 —— 扣掉內距只剩 244dp，平均每顆不到 38dp，
  * 光標籤本身就放不下，所以改排成兩列、每顆等寬。慢到快依然是左到右、上到下。
+ *
+ * [locked] 為 true 時只有目前選中的那一檔可按，其餘置灰（Health 同步中鎖在步行）。
  */
 @Composable
 fun SpeedSelector(
     selected: SpeedTier,
     modifier: Modifier = Modifier,
     accent: Color = Color(0xFF4DD0E1),
+    locked: Boolean = false,
     onSelect: (SpeedTier) -> Unit
 ) {
     Column(
@@ -76,6 +90,7 @@ fun SpeedSelector(
                         active = tier == selected,
                         accent = accent,
                         modifier = Modifier.weight(1f),
+                        enabled = !locked || tier == selected,
                         onClick = { onSelect(tier) }
                     )
                 }

@@ -27,6 +27,15 @@ data class MockUiState(
      * 用 tick 而不是 boolean，是為了讓連續兩次「收鍵盤」都能觸發 LaunchedEffect。
      */
     val focusReleaseTick: Int = 0,
+    /** 這次面板開著的期間已成功寫進 Health Connect 的距離（公尺），只給面板顯示。 */
+    val healthDistanceM: Double = 0.0,
+    /** 這次面板開著的期間已成功寫進 Health Connect 的步數，只給面板顯示。 */
+    val healthSteps: Long = 0L,
+    /**
+     * 移動時是否定時把步數／距離寫進 Health Connect。
+     * 開著的期間速度檔鎖在步行 —— 步數是用步行步幅換算的，其他檔次寫進去的數字不合理。
+     */
+    val healthSync: Boolean = false,
     val message: String? = null,
     val needsMockAppSetup: Boolean = false,
     val query: String = "",
@@ -57,8 +66,8 @@ object MockStateHolder {
     /** 更新輸入框內容。 */
     fun setQuery(q: String) = update { it.copy(query = q) }
 
-    /** 切換速度檔次。 */
-    fun setSpeed(tier: SpeedTier) = update { it.copy(speedTier = tier) }
+    /** 切換速度檔次。Health 同步開著時檔次鎖在步行，這裡直接不理會（面板上其他檔次也已置灰）。 */
+    fun setSpeed(tier: SpeedTier) = update { if (it.healthSync) it else it.copy(speedTier = tier) }
 
     /** 寫入搖桿向量，由 MovementController 在每個 tick 讀取。 */
     fun setStick(x: Float, y: Float) = update { it.copy(stick = StickInput(x, y)) }

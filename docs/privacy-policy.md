@@ -5,7 +5,7 @@ title: Jog Privacy Policy
 
 # Jog Privacy Policy
 
-**Effective date: 2026-09-23**
+**Effective date: 2026-10-02**
 
 Jog ("the app") is a mock location tool for development and QA testing, published by WLWorks. This policy explains what the app does with data. The short version: **Jog does not collect, store or transmit any personal data.**
 
@@ -19,6 +19,13 @@ Jog does not collect any personal or device data. It contains no analytics, cras
 - **Mock location** (`ACCESS_MOCK_LOCATION`). Lets Jog appear under Developer options → Select mock location app. Jog can only simulate locations after you choose it there.
 - **Display over other apps** (`SYSTEM_ALERT_WINDOW`). Shows the floating control panel while you test another app.
 - **Notifications** (`POST_NOTIFICATIONS`) and **foreground service**. Keeps a persistent notification visible while simulation is running so you can stop it at any time.
+- **Health Connect write access** (`WRITE_STEPS`, `WRITE_DISTANCE`). Optional, and only used by the Health sync feature described below.
+
+## Health Connect
+
+Health sync is optional and off by default. If you grant write access and turn it on in the floating panel, Jog writes step counts and distance derived from the simulated movement to Health Connect on your device, about once a minute while the simulated position is moving. These are simulated test values, marked as manually entered, intended for testing apps that read Health Connect — they are not measurements of your activity.
+
+Jog requests write access only. It never reads any data from Health Connect, and the values it writes are not sent to WLWorks or to any third party. You can revoke the permission or delete the records Jog wrote at any time in Health Connect's own settings.
 
 ## Place name lookup
 
@@ -44,7 +51,7 @@ Questions about this policy can be sent to WLWorks at <willy78831@gmail.com>, or
 
 # Jog 隱私權政策
 
-**生效日期：2026-09-23**
+**生效日期：2026-10-02**
 
 Jog（以下稱「本 App」）是 WLWorks 發行的開發與 QA 測試用模擬定位工具。本政策說明本 App 如何處理資料。一句話版本：**Jog 不蒐集、不儲存、不傳輸任何個人資料。**
 
@@ -58,6 +65,13 @@ Jog 不蒐集任何個人或裝置資料。App 內沒有分析、當機回報、
 - **模擬位置**（`ACCESS_MOCK_LOCATION`）。讓 Jog 出現在「開發者選項 → 選取模擬位置資訊應用程式」清單中。你在那裡選擇 Jog 之後它才能模擬定位。
 - **顯示在其他應用程式上層**（`SYSTEM_ALERT_WINDOW`）。在你測試其他 App 時顯示懸浮控制面板。
 - **通知**（`POST_NOTIFICATIONS`）與**前景服務**。模擬進行中持續顯示常駐通知，讓你隨時可以停止。
+- **Health Connect 寫入權限**（`WRITE_STEPS`、`WRITE_DISTANCE`）。選用，只有下方說明的 Health 同步功能會用到。
+
+## Health Connect
+
+Health 同步是選用功能，預設關閉。當你授予寫入權限並在懸浮面板開啟後，Jog 會在模擬位置移動的期間，約每分鐘一次把由模擬移動換算出的步數與距離寫入裝置上的 Health Connect。這些是模擬出來的測試數值，標記為手動輸入，用途是測試會讀取 Health Connect 的 App，並不是你實際活動的量測結果。
+
+Jog 只申請寫入權限，不會從 Health Connect 讀取任何資料；寫入的數值也不會傳送給 WLWorks 或任何第三方。你隨時可以在 Health Connect 的設定中撤銷權限，或刪除 Jog 寫入的紀錄。
 
 ## 地名查詢
 

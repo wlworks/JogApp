@@ -1,6 +1,7 @@
 package com.wlworks.jog
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -42,6 +43,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.health.connect.client.PermissionController
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.wlworks.jog.data.HealthConnectStore
 import com.wlworks.jog.service.FloatingWindowService
 
 /**
@@ -53,15 +58,33 @@ import com.wlworks.jog.service.FloatingWindowService
  *  3. 通知權限（Android 13+，前景服務通知要顯示）
  *  4. 開發者選項裡把本 App 選為「模擬位置資訊應用程式」（無法用程式代勞，只能引導）
  *
+ * 另有一列選用的 Health Connect 寫入權限：只有要用「Health 同步」才需要，不影響啟動。
+ * 權限只能從 Activity 申請，所以懸浮面板發現缺權限時會帶 [EXTRA_REQUEST_HEALTH] 把人送回這裡。
+ *
  * 畫面上同時放了用途說明與隱私權政策連結。SYSTEM_ALERT_WINDOW 與定位權限是 Play 審核
  * 最在意的兩項，App 內講清楚比只在商店文案講有用。
  */
 class MainActivity : ComponentActivity() {
 
     companion object {
+
+        /** intent extra：一進來就跳 Health Connect 的事前說明。 */
+        private const val EXTRA_REQUEST_HEALTH = "request_health"
+
         /** 隱私權政策公開網址，由 repo 的 docs/ 透過 GitHub Pages 發佈。 */
         const val PRIVACY_POLICY_URL = "https://wlworks.github.io/JogApp/privacy-policy"
+
+        /** 組出「回設定畫面申請 Health Connect 權限」的 intent。從 Service 啟動，所以要帶 NEW_TASK。 */
+        fun healthPermissionIntent(context: Context): Intent =
+            Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(EXTRA_REQUEST_HEALTH, true)
     }
+
+    private val health by lazy { HealthConnectStore(this) }
+
+    /** Health Connect 寫入權限是否已取得；查詢是 suspend 的，所以另外存一份給畫面讀。 */
+    private var healthGranted by mutableStateOf(false)
 
     private val openSettings = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -69,11 +92,24 @@ class MainActivity : ComponentActivity() {
 
     private var permissionTick by mutableStateOf(0)
 
+    private val requestHealth = registerForActivityResult(
+        PermissionController.createRequestPermissionResultContract()
+    ) { refreshHealth() }
+
     private val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissionTick++ }
 
+    private var showHealthDisclosure by mutableStateOf(false)
+
     private var showLocationDisclosure by mutableStateOf(false)
+
+    /** 面板把人送回來申請 Health Connect 權限時，直接跳事前說明；extra 用過就清掉，轉向不會重跳。 */
+    private fun handleHealthRequest(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_REQUEST_HEALTH, false) != true) return
+        intent.removeExtra(EXTRA_REQUEST_HEALTH)
+        if (health.isAvailable()) showHealthDisclosure = true
+    }
 
     /** 是否已取得精確定位權限。 */
     private fun hasLocationPermission() = ContextCompat.checkSelfPermission(
@@ -103,6 +139,9 @@ class MainActivity : ComponentActivity() {
                     onRequestOverlay = ::requestOverlay,
                     onRequestLocation = { showLocationDisclosure = true },
                     onRequestNotification = ::requestNotification,
+                    healthAvailable = health.isAvailable(),
+                    healthGranted = healthGranted,
+                    onRequestHealth = { showHealthDisclosure = true },
                     onOpenDeveloperOptions = ::openDeveloperOptions,
                     onOpenPrivacyPolicy = ::openPrivacyPolicy,
                     onStart = { FloatingWindowService.start(this) },
@@ -117,14 +156,33 @@ class MainActivity : ComponentActivity() {
                         onDismiss = { showLocationDisclosure = false }
                     )
                 }
+                if (showHealthDisclosure) {
+                    DisclosureDialog(
+                        title = stringResource(R.string.disclosure_health_title),
+                        body = stringResource(R.string.disclosure_health_body),
+                        onConfirm = {
+                            showHealthDisclosure = false
+                            requestHealth.launch(HealthConnectStore.PERMISSIONS)
+                        },
+                        onDismiss = { showHealthDisclosure = false }
+                    )
+                }
             }
         }
+        handleHealthRequest(intent)
+    }
+
+    /** singleTop：設定畫面已經開著時，面板送來的申請走這裡。 */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleHealthRequest(intent)
     }
 
     /** 從系統設定返回時重新檢查權限。 */
     override fun onResume() {
         super.onResume()
         permissionTick++
+        refreshHealth()
     }
 
     /** 跳到開發者選項，跳不動就退回主設定頁。 */
@@ -141,6 +199,11 @@ class MainActivity : ComponentActivity() {
         runCatching {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
         }
+    }
+
+    /** 重新查一次 Health Connect 權限並更新畫面。 */
+    private fun refreshHealth() {
+        lifecycleScope.launch { healthGranted = health.hasPermissions() }
     }
 
     /** 要求精確與概略定位權限。只在使用者看過事前說明並按下繼續後才呼叫。 */
@@ -215,13 +278,13 @@ private fun CheckRow(title: String, granted: Boolean?, onClick: () -> Unit) {
     }
 }
 
-/** 定位權限的事前說明（prominent disclosure）：在系統對話框之前用自己的 UI 交代用途，按繼續才真正發出請求。 */
+/** 事前說明（prominent disclosure）的共用對話框：在系統對話框之前用自己的 UI 交代用途，按繼續才真正發出請求。 */
 @Composable
-private fun LocationDisclosureDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+private fun DisclosureDialog(title: String, body: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.disclosure_location_title)) },
-        text = { Text(stringResource(R.string.disclosure_location_body)) },
+        title = { Text(title) },
+        text = { Text(body) },
         confirmButton = {
             TextButton(onClick = onConfirm) { Text(stringResource(R.string.disclosure_continue)) }
         },
@@ -231,7 +294,18 @@ private fun LocationDisclosureDialog(onConfirm: () -> Unit, onDismiss: () -> Uni
     )
 }
 
-/** 權限引導畫面：用途說明、四道關卡、啟動／關閉懸浮視窗，底下附隱私權政策連結。 */
+/** 定位權限的事前說明。 */
+@Composable
+private fun LocationDisclosureDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    DisclosureDialog(
+        title = stringResource(R.string.disclosure_location_title),
+        body = stringResource(R.string.disclosure_location_body),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss
+    )
+}
+
+/** 權限引導畫面：用途說明、四道關卡與選用的 Health Connect、啟動／關閉懸浮視窗，底下附隱私權政策連結。 */
 @Composable
 private fun SetupScreen(
     overlayGranted: Boolean,
@@ -240,6 +314,9 @@ private fun SetupScreen(
     onRequestOverlay: () -> Unit,
     onRequestLocation: () -> Unit,
     onRequestNotification: () -> Unit,
+    healthAvailable: Boolean,
+    healthGranted: Boolean,
+    onRequestHealth: () -> Unit,
     onOpenDeveloperOptions: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onStart: () -> Unit,
@@ -279,6 +356,12 @@ private fun SetupScreen(
             granted = null,
             onClick = onOpenDeveloperOptions
         )
+        // 選用，不算進 ready：不用 Health 同步的人完全不必理它
+        if (healthAvailable) {
+            CheckRow(stringResource(R.string.setup_health), healthGranted, onRequestHealth)
+        } else {
+            CheckRow(stringResource(R.string.setup_health_unavailable), granted = false, onClick = {})
+        }
 
         Action(stringResource(R.string.setup_start), enabled = ready, onClick = onStart)
         Action(stringResource(R.string.setup_stop), enabled = true, onClick = onStop)

@@ -23,7 +23,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -34,10 +38,12 @@ import com.wlworks.jog.MainActivity
 import com.wlworks.jog.R
 import com.wlworks.jog.core.DistanceFormat
 import com.wlworks.jog.core.GeoMath
+import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.LatLng
 import com.wlworks.jog.core.RandomJump
 import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.data.GeocodeRepository
+import com.wlworks.jog.data.HealthConnectStore
 import com.wlworks.jog.data.LastLocationStore
 import com.wlworks.jog.mock.MockLocationEngine
 import com.wlworks.jog.mock.MovementController
@@ -45,6 +51,7 @@ import com.wlworks.jog.state.MockStateHolder
 import com.wlworks.jog.ui.CollapsedPanel
 import com.wlworks.jog.ui.FloatingPanel
 import com.wlworks.jog.ui.PanelActions
+import java.time.Instant
 import kotlin.random.Random
 
 /**
@@ -61,6 +68,12 @@ class FloatingWindowService : LifecycleService() {
 
         /** 前景服務通知所屬的頻道 id。 */
         private const val CHANNEL_ID = "jog_running"
+
+        /**
+         * 多久把累計的步數／距離寫進 Health Connect 一次。官方對運動中步數的預期粒度是每分鐘一筆，
+         * 寫入間隔上限是 15 分鐘；60 秒剛好對上前者，也讓測試時不必等太久才看得到資料。
+         */
+        private const val HEALTH_FLUSH_MS = 60_000L
 
         /** 前景服務通知 id。 */
         private const val NOTIF_ID = 1001
@@ -86,9 +99,17 @@ class FloatingWindowService : LifecycleService() {
 
     private lateinit var engine: MockLocationEngine
     private lateinit var geocoder: GeocodeRepository
+    private lateinit var health: HealthConnectStore
+
+    /** 寫 Health Connect 用的 scope。不跟 Service 的 lifecycle 綁，onDestroy 補寫的最後一批才不會被取消。 */
+    private val healthScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** 下一批 Health Connect 紀錄的起始時間；每次 flush 後往前推，紀錄之間不重疊。 */
+    private var healthWindowStart: Instant = Instant.now()
     private lateinit var lastLocation: LastLocationStore
     private lateinit var movement: MovementController
     private lateinit var overlay: OverlayHost
+    private val tally = HealthTally()
 
     /** 以 [point] 為起點開始注入，並處理未被選為 mock app 等失敗情形。 */
     private fun applyTarget(point: LatLng) {
@@ -156,10 +177,59 @@ class FloatingWindowService : LifecycleService() {
             .build()
     }
 
+    /**
+     * 把 [tally] 累計到現在的量寫成一批 Health Connect 紀錄，時間涵蓋上次 flush 到現在。
+     * 只在主執行緒呼叫（定時迴圈、關閉同步、onDestroy），所以時間窗的推進不必上鎖；
+     * 真正的寫入丟到 [healthScope]。寫失敗多半是權限被撤銷，直接關掉同步並提示。
+     */
+    private fun flushHealth() {
+        val batch = tally.drain()
+        val start = healthWindowStart
+        val end = Instant.now()
+        healthWindowStart = end
+        if (batch.isEmpty) return
+        healthScope.launch {
+            if (health.write(batch = batch, start = start, end = end)) {
+                MockStateHolder.update {
+                    it.copy(
+                        healthDistanceM = it.healthDistanceM + batch.distanceM,
+                        healthSteps = it.healthSteps + batch.steps
+                    )
+                }
+            } else {
+                MockStateHolder.update {
+                    it.copy(healthSync = false, message = getString(R.string.msg_health_write_failed))
+                }
+            }
+        }
+    }
+
     /** 是否已取得精確定位權限。 */
     private fun hasLocationPermission() = ContextCompat.checkSelfPermission(
         this, android.Manifest.permission.ACCESS_FINE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Health Connect 同步開著的期間，每 HEALTH_FLUSH_MS 寫一次。
+     * 關掉時 collectLatest 會取消迴圈；最後一段由關閉的那一方（toggleHealthSync / onDestroy）補寫。
+     */
+    private fun observeHealthSync() {
+        lifecycleScope.launch {
+            MockStateHolder.state
+                .map { it.healthSync }
+                .distinctUntilChanged()
+                .collectLatest { on ->
+                    if (!on) return@collectLatest
+                    // 開啟前累計的不算，時間窗從現在起算
+                    tally.drain()
+                    healthWindowStart = Instant.now()
+                    while (true) {
+                        delay(HEALTH_FLUSH_MS)
+                        flushHealth()
+                    }
+                }
+        }
+    }
 
     /** 模擬開始／停止、切換速度檔或自動移動時更新常駐通知內文。座標變化不更新，避免每秒刷三次通知。 */
     private fun observeStateForNotification() {
@@ -194,8 +264,9 @@ class FloatingWindowService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         engine = MockLocationEngine(this)
-        movement = MovementController(engine, lifecycleScope)
+        movement = MovementController(engine = engine, scope = lifecycleScope, tally = tally)
         geocoder = GeocodeRepository(this)
+        health = HealthConnectStore(this)
         lastLocation = LastLocationStore(this)
         overlay = OverlayHost(this)
 
@@ -222,17 +293,26 @@ class FloatingWindowService : LifecycleService() {
             stopSelf()
             return
         }
+        observeHealthSync()
         observeStateForNotification()
         observeStateForPersistence()
         showOverlay()
     }
 
-    /** 收掉模擬、移除懸浮視窗，並把最後座標補存一次（可能落在節流間隔內還沒寫）。 */
+    /**
+     * 收掉模擬、移除懸浮視窗，並把最後座標補存一次（可能落在節流間隔內還沒寫）。
+     * Health Connect 還沒寫的那一段也在這裡補寫；狀態是行程層級的，所以同步開關與累計數字
+     * 都要清掉，下次開面板從頭來（速度檔的鎖也跟著解開）。
+     */
     override fun onDestroy() {
         movement.stop()
         engine.stop()
         overlay.dismiss()
+        if (MockStateHolder.state.value.healthSync) flushHealth()
         MockStateHolder.state.value.current?.let(lastLocation::save)
+        MockStateHolder.update {
+            it.copy(healthDistanceM = 0.0, healthSteps = 0L, healthSync = false)
+        }
         super.onDestroy()
     }
 
@@ -329,6 +409,7 @@ class FloatingWindowService : LifecycleService() {
                         onSpeed = MockStateHolder::setSpeed,
                         onStick = MockStateHolder::setStick,
                         onToggleAuto = ::toggleAutoMove,
+                        onToggleHealth = ::toggleHealthSync,
                         onToggleRun = ::toggleRun
                     )
                 )
@@ -383,6 +464,33 @@ class FloatingWindowService : LifecycleService() {
         // applyTarget 可能失敗（沒被選為 mock app），沒跑起來就不要亮自動移動
         MockStateHolder.update {
             it.copy(autoMove = it.running, resolvedLabel = if (it.running) null else it.resolvedLabel)
+        }
+    }
+
+    /**
+     * 開／關 Health Connect 同步。開之前過兩關：裝置支援、寫入權限；
+     * 權限只能從 Activity 申請，所以缺權限時把使用者帶回設定畫面。
+     * 開啟的同時把速度檔切到步行並鎖住（見 MockUiState.healthSync）。
+     */
+    private fun toggleHealthSync() {
+        if (MockStateHolder.state.value.healthSync) {
+            flushHealth()
+            MockStateHolder.update { it.copy(healthSync = false) }
+            return
+        }
+        if (!health.isAvailable()) {
+            MockStateHolder.message(getString(R.string.msg_health_unavailable))
+            return
+        }
+        lifecycleScope.launch {
+            if (health.hasPermissions()) {
+                MockStateHolder.update {
+                    it.copy(healthSync = true, message = null, speedTier = SpeedTier.WALK)
+                }
+            } else {
+                MockStateHolder.message(getString(R.string.msg_health_need_permission))
+                startActivity(MainActivity.healthPermissionIntent(this@FloatingWindowService))
+            }
         }
     }
 

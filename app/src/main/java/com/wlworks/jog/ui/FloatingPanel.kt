@@ -73,6 +73,7 @@ data class PanelActions(
     val onSpeed: (SpeedTier) -> Unit,
     val onStick: (Float, Float) -> Unit,
     val onToggleAuto: () -> Unit,
+    val onToggleHealth: () -> Unit,
     val onToggleRun: () -> Unit
 )
 
@@ -258,6 +259,8 @@ fun FloatingPanel(
         SpeedSelector(
             selected = state.speedTier,
             accent = Accent,
+            // Health 同步中只留目前這一檔（步行），其他置灰
+            locked = state.healthSync,
             onSelect = {
                 dismissKeyboard()
                 actions.onSpeed(it)
@@ -276,17 +279,44 @@ fun FloatingPanel(
             }
         )
 
-        // ---- 自動移動 ----
+        // ---- 自動移動／Health Connect 同步 ----
         // 和隨機跳一樣跟著速度檔走，所以也放在速度檔下面
-        PillButton(
-            text = stringResource(R.string.panel_auto_move),
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            filled = state.autoMove,
-            onClick = {
-                dismissKeyboard()
-                actions.onToggleAuto()
-            }
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            PillButton(
+                text = stringResource(R.string.panel_auto_move),
+                modifier = Modifier.weight(1f),
+                filled = state.autoMove,
+                onClick = {
+                    dismissKeyboard()
+                    actions.onToggleAuto()
+                }
+            )
+            PillButton(
+                text = stringResource(R.string.panel_health_sync),
+                modifier = Modifier.weight(1f),
+                filled = state.healthSync,
+                onClick = {
+                    dismissKeyboard()
+                    actions.onToggleHealth()
+                }
+            )
+        }
+
+        // ---- 已寫進 Health Connect 的量。每分鐘才寫一次，剛開的前一分鐘是 0 ----
+        if (state.healthSync) {
+            Text(
+                text = stringResource(
+                    R.string.panel_health_written,
+                    state.healthSteps,
+                    DistanceFormat.single(state.healthDistanceM)
+                ),
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 11.sp
+            )
+        }
 
         // ---- 搖桿 ----
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {

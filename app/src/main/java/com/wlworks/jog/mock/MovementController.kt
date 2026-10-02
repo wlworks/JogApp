@@ -8,6 +8,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import com.wlworks.jog.core.AutoRoam
 import com.wlworks.jog.core.GeoMath
+import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.LatLng
 import com.wlworks.jog.state.MockStateHolder
 
@@ -21,7 +22,8 @@ import com.wlworks.jog.state.MockStateHolder
  */
 class MovementController(
     private val engine: MockLocationEngine,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val tally: HealthTally
 ) {
     private companion object {
 
@@ -70,11 +72,14 @@ class MovementController(
                 // 速度每個 tick 都重讀檔次：自動移動中切檔，下一個 tick 就換速度
                 val speedMps = snapshot.speedTier.mps * throttle
                 if (speedMps > 0.0) {
+                    val movedM = speedMps * tickS
                     position = GeoMath.destination(
                         from = position,
                         bearingDeg = lastBearing,
-                        distanceM = speedMps * tickS
+                        distanceM = movedM
                     )
+                    // 搖桿和自動移動走的路都算；瞬移不經過這裡所以不算
+                    if (snapshot.healthSync) tally.add(movedM)
                 }
 
                 engine.push(position, lastBearing, speedMps.toFloat())

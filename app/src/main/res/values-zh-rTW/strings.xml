@@ -14,6 +14,8 @@
     <string name="setup_location">定位權限</string>
     <string name="setup_notification">通知權限</string>
     <string name="setup_mock_app">開發者選項 → 選取模擬位置資訊應用程式 → Jog</string>
+    <string name="setup_health">Health Connect 寫入權限（選用）</string>
+    <string name="setup_health_unavailable">這台裝置無法使用 Health Connect</string>
     <string name="setup_start">啟動懸浮視窗</string>
     <string name="setup_stop">關閉懸浮視窗</string>
 
@@ -29,6 +31,8 @@
     <string name="panel_random_nearby">隨機跳 %1$s</string>
     <string name="cd_close">關閉面板</string>
     <string name="panel_auto_move">自動移動</string>
+    <string name="panel_health_sync">Health 同步</string>
+    <string name="panel_health_written">Health 同步中（限步行）· 已寫入 %1$d 步 · %2$s</string>
     <string name="panel_auto_moving">自動移動中 · 推搖桿可接手方向</string>
 
     <!-- Speed tiers -->
@@ -48,6 +52,10 @@
     <string name="label_coordinates">座標 %1$s</string>
     <string name="msg_random_jumped">隨機往%1$s跳了 %2$s（%3$s）</string>
 
+    <string name="msg_health_unavailable">這台裝置無法使用 Health Connect</string>
+    <string name="msg_health_need_permission">請允許 Jog 把步數與距離寫入 Health Connect，再按一次「Health 同步」</string>
+    <string name="msg_health_write_failed">寫入 Health Connect 失敗，已關閉同步。請到 Jog 確認權限</string>
+
     <string-array name="compass_points">
         <item>北</item>
         <item>東北</item>
@@ -64,6 +72,8 @@
     <string name="setup_privacy_policy">隱私權政策</string>
     <string name="disclosure_location_title">為什麼 Jog 需要定位權限</string>
     <string name="disclosure_location_body">Android 規定要有定位權限才能註冊模擬定位供應者。Jog 只把這個權限用在這件事上：不會讀取你的真實位置，任何資料都不會離開這台裝置。</string>
+    <string name="disclosure_health_title">為什麼 Jog 要用 Health Connect</string>
+    <string name="disclosure_health_body">Health 同步是選用功能。開啟後，Jog 會把模擬移動的步數與距離寫入 Health Connect，方便你測試會讀取這些資料的 App。寫入的是模擬出來的測試數值，不是實際量測。Jog 不會讀取你的健康資料，任何資料都不會離開這台裝置。</string>
     <string name="disclosure_continue">繼續</string>
     <string name="disclosure_cancel">先不要</string>
 </resources>

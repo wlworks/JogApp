@@ -130,6 +130,7 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 | `SYSTEM_ALERT_WINDOW` | 沒有專門申報表，但**會引起人工審核注意**（惡意軟體常用）。說明文字要交代用途 |
 | `POST_NOTIFICATIONS` | 前景服務必需，無特殊要求 |
 | `INTERNET` | **已移除**，見第 4 節 |
+| `health.WRITE_STEPS` / `health.WRITE_DISTANCE` | 需要 Console 申報，見第 8 節 |
 
 ---
 
@@ -236,6 +237,26 @@ Play 要求 App 相容 16 KB 記憶體分頁。這條只影響**含原生 `.so` 
 - [ ] 盯 Play Console 的**政策狀態頁**，不要只看 email 通知
 - [ ] 收到警告時先讀完整的違規說明再改，盲目重送會累積違規紀錄
 - [ ] 使用者評論裡如果出現「拿來玩 XX 遊戲很好用」，**不要回覆認同** —— 那會被當成你認可該用途的證據
+
+---
+
+## 8. Health Connect（含 Health 同步的版本才需要）
+
+App 申請了 `android.permission.health.WRITE_STEPS` 與 `WRITE_DISTANCE`，**只寫不讀**。
+含這兩個權限的版本上傳後，Console 會要求健康資料相關申報，沒填會卡審核。
+
+- [ ] Console → App content → Health apps / Health Connect 申報：資料類型只勾 Steps、Distance，存取方式只勾 Write
+- [ ] 用途說明維持開發測試工具的定位：「把模擬移動換算出的步數與距離寫入 Health Connect，供開發者測試會讀取這些資料的 App；不讀取任何健康資料」。
+      **不要**寫成或暗示「幫你補步數」「達成每日目標」—— 那會落到 Deceptive Behavior
+- [ ] 商店文案（`store/listing.md`）若要提到這個功能，同樣只用測試框架，改完重跑紅線檢查
+- [x] App 內事前說明：設定畫面申請權限前先跳 `disclosure_health_body`，明講寫入的是模擬數值
+- [x] 權限說明入口：`MainActivity` 接 `ACTION_SHOW_PERMISSIONS_RATIONALE`，Android 14+ 走 `ViewPermissionUsageActivity` alias
+- [x] 隱私權政策已加 Health Connect 一節（`docs/privacy-policy.md`）
+- [x] 寫入的紀錄標為 manual entry，不冒充感測器資料
+- [x] release 合併後的 manifest 仍然沒有 `INTERNET`（2026-10 以 `bundleRelease` 產物核對）
+- [ ] Data Safety：資料只寫進裝置上的 Health Connect、不離開裝置，依「蒐集 = 傳出裝置」的定義仍是不蒐集；送審前照 Console 當下的題目再核對一次
+- [ ] 依 6.2 的規則，需要重新申報 Play 表單的變動算 MAJOR 版本
+- [ ] 之後若多申請資料類型（ExerciseSession、卡路里…），申報、政策、`disclosure_health_body` 三處要一起改
 
 ---
 

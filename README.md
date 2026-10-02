@@ -21,8 +21,10 @@
 | `core/SpeedTier.kt` | 速度檔次定義 |
 | `core/CoordinateParser.kt` | 十進位 / DMS 座標解析 |
 | `core/AutoRoam.kt` | 自動移動的方向與油門產生器：分段隨機轉向，速度仍由速度檔決定 |
+| `core/HealthTally.kt` | 累計待寫入 Health Connect 的距離與步數（步行步幅換算） |
+| `data/HealthConnectStore.kt` | Health Connect 寫入端，只寫步數與距離、不讀任何資料 |
 | `data/GeocodeRepository.kt` | 座標解析 → 系統 Geocoder（4s timeout）。不打任何外部服務 |
-| `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化；App 唯一寫入磁碟的東西 |
+| `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化；App 自己唯一寫入磁碟的東西 |
 | `mock/MockLocationEngine.kt` | LocationManager test provider + Fused mock mode |
 | `mock/MovementController.kt` | 10Hz tick，把搖桿輸入或自動移動換成座標位移 |
 | `state/MockState.kt` | 程序內唯一狀態來源 |
@@ -34,6 +36,17 @@
 | `docs/` | GitHub Pages：首頁與隱私權政策（英文 + 繁中） |
 | `store/` | Play 商店文案草稿與 `render_store_assets.py` 產出的圖示／主題圖 |
 | `tools/` | `check_style.py`（格式檢查）、`render_store_assets.py`（商店素材） |
+
+## Health 同步
+
+選用功能。面板上的「Health 同步」開著時，每 60 秒把這段時間模擬移動的步數與距離寫進 Health Connect，
+關閉同步或關面板時補寫最後一段；搖桿與自動移動走的路都算，瞬移與隨機跳不算。
+
+- **只支援步行**：開啟時速度檔自動切到步行，其他檔次置灰，關掉同步才解鎖。
+  步數是用步行步幅（0.75 m）從距離換算的，其他檔次寫進去的數字不合理。
+- **只寫不讀**：只申請 `WRITE_STEPS`、`WRITE_DISTANCE`，紀錄標成 manual entry。
+- 權限在設定畫面最後一列申請（先跳事前說明）；面板上開同步時缺權限會把人帶回設定畫面。
+- 上架要另外填健康資料申報，見 [PLAY_RELEASE.md](PLAY_RELEASE.md) 第 8 節。
 
 ## Release build
 
@@ -58,6 +71,7 @@
 - 我的最愛（目前只記上一次的座標）
 - 路線錄製與回放
 - 自動移動的活動範圍限制（目前是純隨機遊走，時間久了會越走越遠）
+- Health 同步的其他檔次（慢跑／單車）與其他資料類型（ExerciseSession、卡路里）—— 目前只有步行的步數與距離
 - 抖動模擬（固定座標太乾淨，容易被反作弊偵測；測試場景多半不需要）
 - 高度／室內樓層
 - 單元測試（`GeoMath`、`CoordinateParser` 最值得先補）
