@@ -1,4 +1,4 @@
 <resources>
-    <!-- adaptive icon 背景；與 App 內的強調色相同 -->
-    <color name="ic_launcher_background">#4DD0E1</color>
+    <!-- adaptive icon 背景；與 App 介面的深色底相同，前景的環與箭頭用強調色 #4DD0E1 -->
+    <color name="ic_launcher_background">#121416</color>
 </resources>

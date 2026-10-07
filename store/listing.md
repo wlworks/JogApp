@@ -13,7 +13,7 @@
 **Title**（≤ 30 字元）
 
 ```
-Jog – Mock Location Dev Tool
+Jog: Mock GPS Location Tester
 ```
 
 **Short description**（≤ 80 字元）
@@ -32,6 +32,8 @@ HOW IT WORKS
 • A floating panel with a joystick nudges the position in real time while the app under test stays in the foreground. Collapse the panel to a compact bubble and the joystick stays available.
 • Six speed tiers, from a slow creep to rail speed, for testing movement at realistic rates.
 • Jump to a random nearby spot. The distance follows the speed tier: about 80–250 m when walking, up to 5–15 km at rail speed.
+• Auto move: the simulated position roams on its own at the selected speed tier, turning gradually like a real walk or drive. Push the joystick at any time to steer.
+• Health sync (optional): while the position moves at walking speed, Jog writes the simulated steps and distance to Health Connect once a minute, so you can test apps that read them.
 • Jog remembers the last simulated position and restores it the next time you open the app.
 • A persistent notification shows while simulation is running so you can stop it at any time.
 
@@ -41,6 +43,7 @@ Jog only works after you enable Developer options and select Jog as the mock loc
 PRIVACY
 • Jog never reads, stores or uploads your real location.
 • The last simulated position is saved only on your device, so you can pick up where you left off.
+• Health sync is off by default. It only writes simulated steps and distance to Health Connect on your device, marked as manually entered. Jog never reads any health data.
 • Jog does not connect to the internet and does not hold the INTERNET permission.
 • No accounts, analytics, advertising or third-party SDKs.
 
@@ -48,6 +51,7 @@ PERMISSIONS
 • Location – required by Android to register a mock location provider.
 • Display over other apps – the floating control panel.
 • Notifications – the stop control while simulation runs.
+• Health Connect, write steps and distance (optional) – used only when you turn on Health sync.
 
 Jog is intended for software development and testing. Use it responsibly and only with apps you are testing.
 ```
@@ -59,7 +63,7 @@ Jog is intended for software development and testing. Use it responsibly and onl
 **標題**（≤ 30 字元）
 
 ```
-Jog 開發測試用模擬定位工具
+Jog 模擬 GPS 定位・開發測試工具
 ```
 
 **簡短說明**（≤ 80 字元）
@@ -78,6 +82,8 @@ Jog 是給 Android 開發者與 QA 測試人員用的模擬定位工具。它把
 • 懸浮面板上的搖桿可以在受測 App 停留在前景時即時微調位置。面板收合成小泡泡後，搖桿依然可以用。
 • 六個速度檔次，從蝸行到高鐵，以合理的速率測試移動。
 • 隨機跳到附近。距離跟著速度檔走：步行約 80–250 公尺，高鐵可達 5–15 公里。
+• 自動移動：模擬位置依目前的速度檔自行隨機移動，像真的走路或開車一樣逐漸轉彎，隨時可以推搖桿接手方向。
+• Health 同步（選用）：以步行速度移動時，每分鐘把模擬的步數與距離寫入 Health Connect，方便測試會讀取這些資料的 App。
 • 記住上次的模擬位置，下次開啟時直接接續。
 • 模擬進行中顯示常駐通知，隨時可以停止。
 
@@ -87,6 +93,7 @@ Jog 必須在你啟用開發者選項並把 Jog 選為模擬位置資訊應用�
 隱私
 • Jog 不會讀取、儲存或上傳你的真實位置。
 • 上次的模擬位置只存在你的裝置上，方便下次接續。
+• Health 同步預設關閉，只會把模擬的步數與距離寫入你裝置上的 Health Connect，並標記為手動輸入。Jog 不會讀取任何健康資料。
 • Jog 不連網，也沒有 INTERNET 權限。
 • 沒有帳號、分析、廣告或第三方 SDK。
 
@@ -94,6 +101,7 @@ Jog 必須在你啟用開發者選項並把 Jog 選為模擬位置資訊應用�
 • 定位：Android 規定註冊模擬定位供應者必須有此權限。
 • 顯示在其他應用程式上層：懸浮控制面板。
 • 通知：模擬進行中的停止控制。
+• Health Connect 寫入步數與距離（選用）：只在你開啟 Health 同步時使用。
 
 Jog 是為軟體開發與測試設計的工具，請負責任地使用，並只用在你正在測試的 App 上。
 ```

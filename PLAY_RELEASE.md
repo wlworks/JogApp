@@ -181,8 +181,8 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 - [x] 內容分級問卷：All Other App Types，全部 No
 - [x] 目標客群：只勾 18 and over
 - [x] 512×512 圖示與 1024×500 主題圖片：`python tools/render_store_assets.py` 產到 `store/`
-- [x] 手機截圖各 4 張在 `store/screenshots/en/` 與 `store/screenshots/zh-TW/`（設定頁、面板運行中、隨機跳、收合面板），已裁成 2:1、去 alpha，只有 Jog 自己的畫面。2026-10-07 以 Play 上的 1.0.0 重拍；**截圖只能出現該版本真的有的功能**，2.0.0 的自動移動／Health 同步要等那版上架時再補拍
-- [x] App 圖示已換成 adaptive icon（`mipmap-anydpi-v26/ic_launcher.xml`，含 monochrome 層）；`ic_pin.xml` 只剩通知在用
+- [x] 手機截圖各 4 張在 `store/screenshots/en/` 與 `store/screenshots/zh-TW/`，已裁成 2:1、去 alpha，只有 Jog 自己的畫面。**截圖只能出現該版本真的有的功能**。2.0.0 版（2026-10-07）：設定頁、自動移動、Health 同步、收合面板；用 debug build 拍，拍攝時暫時把 debug 的 app_name 改成「Jog」（不 commit），面板標題才不會寫 Jog Debug
+- [x] App 圖示是 adaptive icon（`mipmap-anydpi-v26/ic_launcher.xml`）：深色底 + 青色搖桿環與四向箭頭 + 白色 pin（2.0.0 起），另有 `ic_launcher_monochrome.xml` 給主題圖示；商店的 512 圖示與主題圖片由 `tools/render_store_assets.py` 畫同一個圖形。`ic_pin.xml` 只剩通知在用
 - [x] 廣告聲明：無廣告；Advertising ID：不使用
 - [x] 資料刪除網址：不適用
 - [x] 商店資訊預設 en-US，另加 zh-TW，兩個都已隨首次送審
@@ -222,7 +222,10 @@ Play 不接受重複的 `versionCode`，所以**同一個版本號不能上傳�
 版本紀錄：
 
 - 0.1.0（versionCode 1）— 2026-09-18 第一輪 Closed testing
-- 1.0.0（versionCode 10000）— 封測回饋修正：收合保留搖桿、記住上次位置、地名解析修正、隨機跳到附近
+- 1.0.0（versionCode 10000）— 封測回饋修正：收合保留搖桿、記住上次位置、地名解析修正、隨機跳到附近。
+  2026-10-07 由封測直接推上 Production，第一個正式版
+- 2.0.0（versionCode 20000）— 自動移動、Health 同步（新增 Health Connect 寫入權限，需健康資料申報）、
+  未選為模擬位置應用程式時的提示。廣告關卡在程式裡但 `jog.ads=false`，這版不含廣告
 
 ### 16 KB page size
 

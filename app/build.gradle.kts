@@ -15,7 +15,7 @@ val keystoreProperties: Properties? = rootProject.file("keystore.properties")
 // 版本只改這一行。MAJOR：使用方式或 Play 申報內容改變；MINOR：任何使用者看得到的新東西；
 // PATCH：只修行為不加 UI。Play 不接受重複的 versionCode，所以同一個版本號不能上傳兩次 ——
 // 包錯了就升 PATCH 重包，不要想「同版本重傳」。
-val appVersion = "1.0.0"
+val appVersion = "2.0.0"
 
 // versionCode 由 appVersion 算出（1.0.0 → 10000、1.2.3 → 10203），Console 上的數字能直接對回版本，
 // 也不會出現 versionName 升了但 versionCode 忘了升。每段上限 99，超過就讓 build 失敗而不是默默溢位。

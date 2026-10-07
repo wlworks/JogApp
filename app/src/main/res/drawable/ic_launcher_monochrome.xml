@@ -1,8 +1,5 @@
-<!-- adaptive icon 前景：搖桿環 + 四向箭頭 + 中央的 pin，呼應 App 最核心的操作「推搖桿移動位置」。
-     座標以 108 單位畫布設計，外層 group 再縮到 0.82 —— launcher 只露出中間 72 單位，
-     縮完環的外緣半徑約 27，各家遮罩（圓形、圓角方形）都留得出邊距。
-     pin 的圓孔用 evenOdd 挖空，透出背景色；改形狀時 ic_launcher_monochrome.xml 與
-     tools/render_store_assets.py 要一起改。 -->
+<!-- Android 13+ 主題圖示用的單色層：系統只取 alpha 再自己上色，所以全部畫成實心，
+     圖形與 ic_launcher_foreground.xml 相同（環、箭頭、挖空的 pin）。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -13,16 +10,13 @@
         android:pivotY="54"
         android:scaleX="0.82"
         android:scaleY="0.82">
-        <!-- 搖桿環 -->
         <path
             android:pathData="M23,54A31,31 0,1 1,85 54A31,31 0,1 1,23 54Z"
-            android:strokeColor="#4DD0E1"
+            android:strokeColor="#FFFFFF"
             android:strokeWidth="3.5" />
-        <!-- 四向箭頭 -->
         <path
-            android:fillColor="#4DD0E1"
+            android:fillColor="#FFFFFF"
             android:pathData="M54,26.5L50,31.5L58,31.5ZM54,81.5L50,76.5L58,76.5ZM26.5,54L31.5,50L31.5,58ZM81.5,54L76.5,50L76.5,58Z" />
-        <!-- pin（圓孔挖空） -->
         <path
             android:fillColor="#FFFFFF"
             android:fillType="evenOdd"

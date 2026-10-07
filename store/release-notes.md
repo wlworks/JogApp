@@ -45,4 +45,21 @@ Jog 第一個正式版，給開發者與 QA 用的模擬定位工具。
 </zh-TW>
 ```
 
+## 2.0.0（versionCode 20000）— 自動移動與 Health 同步
+
+MAJOR：新增 Health Connect 寫入權限，Play Console 要另外填健康資料申報（見 PLAY_RELEASE.md 第 8 節）。
+
+```
+<en-US>
+• Auto move: the simulated position roams on its own at the selected speed tier. Push the joystick at any time to steer.
+• Health sync (optional): while moving at walking speed, Jog writes the simulated steps and distance to Health Connect once a minute, for testing apps that read them. Write-only; Jog never reads health data.
+• Jog now tells you when it is not selected as the mock location app, instead of silently doing nothing.
+</en-US>
+<zh-TW>
+• 自動移動：模擬位置依目前的速度檔自行隨機移動，隨時可以推搖桿接手方向。
+• Health 同步（選用）：以步行移動時，每分鐘把模擬的步數與距離寫入 Health Connect，方便測試會讀取這些資料的 App。只寫不讀，Jog 不會讀取任何健康資料。
+• 沒有被選為模擬位置資訊應用程式時，會直接提示，不再默默沒有作用。
+</zh-TW>
+```
+
 之後每次上傳新版：`versionCode` +1，在這裡加一段，只寫這版改了什麼。
