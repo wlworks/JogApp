@@ -181,7 +181,7 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 - [x] 內容分級問卷：All Other App Types，全部 No
 - [x] 目標客群：只勾 18 and over
 - [x] 512×512 圖示與 1024×500 主題圖片：`python tools/render_store_assets.py` 產到 `store/`
-- [x] 手機截圖各 3 張在 `store/screenshots/en/` 與 `store/screenshots/zh-TW/`（設定頁、面板運行中、速度檔切換），已裁成 2:1、去 alpha，只有 Jog 自己的畫面
+- [x] 手機截圖各 4 張在 `store/screenshots/en/` 與 `store/screenshots/zh-TW/`（設定頁、面板運行中、隨機跳、收合面板），已裁成 2:1、去 alpha，只有 Jog 自己的畫面。2026-10-07 以 Play 上的 1.0.0 重拍；**截圖只能出現該版本真的有的功能**，2.0.0 的自動移動／Health 同步要等那版上架時再補拍
 - [x] App 圖示已換成 adaptive icon（`mipmap-anydpi-v26/ic_launcher.xml`，含 monochrome 層）；`ic_pin.xml` 只剩通知在用
 - [x] 廣告聲明：無廣告；Advertising ID：不使用
 - [x] 資料刪除網址：不適用

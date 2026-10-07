@@ -193,8 +193,13 @@ Target audience、News、Data safety、Government、Financial、Health、Privacy
 
 ## Production 上傳前
 
-- `versionCode` 比封閉測試用的那版大。
-- 第一次上傳時勾 **Use Play App Signing**（現在是預設，Google 會產正式簽章金鑰，你手上的是 upload key）。
+- 第一個正式版直接把封測中的 1.0.0（versionCode 10000）推上去，**不重新上傳**：
+  Production → Create new release → App bundles 選 **Add from library** 挑 10000；或在 Closed testing 的
+  release 上按 **Promote release → Production**。Release notes 用 `store/release-notes.md` 的 1.0.0 段落。
+- Production 有自己的 Countries / regions 設定，不會沿用封測的，要另外選。
+- 要自己決定上線時間就先在 Publishing overview 開 **Managed publishing**，審核通過後再手動發布。
+- 之後的版本才是新上傳：`versionCode` 要比線上那版大（由 `appVersion` 算出，升版即可）。
+- Play App Signing 已在 2026-09-18 首次上傳時啟用，不必再設定。
 
 ---
 
