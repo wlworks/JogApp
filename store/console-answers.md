@@ -195,3 +195,38 @@ Target audience、News、Data safety、Government、Financial、Health、Privacy
 
 - `versionCode` 比封閉測試用的那版大。
 - 第一次上傳時勾 **Use Play App Signing**（現在是預設，Google 會產正式簽章金鑰，你手上的是 upload key）。
+
+---
+
+## 之後的版本要改的答案
+
+上面的答案對應 1.0.0（不連網、沒有健康功能、沒有廣告）。下面兩種版本送審前要改對應的表單。
+
+### 含 Health 同步的版本
+
+- **Health** → 改成有健康功能：資料類型只有 Steps、Distance，存取方式只有 Write，不讀取。
+  用途：把模擬移動換算出的步數與距離寫入 Health Connect，供開發者測試會讀取這些資料的 App。
+  檢查清單見 `PLAY_RELEASE.md` 第 8 節。
+- **Data safety** → 仍是 No：資料只寫進裝置上的 Health Connect，不傳出裝置。送審時照 Console 當下的題目再核對。
+
+### 含廣告的版本（`jog.ads=true`）
+
+以下依 Google 公布的 AdMob SDK 資料揭露說明整理，送審前請對照 AdMob 當時的官方說明再核對一次。
+
+- **Ads** → **Yes, my app contains ads.**
+- **Advertising ID** → **Yes**，用途勾 **Advertising or marketing**。
+  （`play-services-ads` 會自動把 `AD_ID` 權限帶進 manifest。）
+- **Data safety** → Does your app collect or share any of the required user data types? → **Yes**
+  - Is all of the user data collected by your app encrypted in transit? → **Yes**
+  - Do you provide a way for users to request that their data is deleted? → **No**（沒有帳號；資料由 Google 依其政策處理）
+  - 資料類型（都是由 AdMob SDK 蒐集，Collected + Shared，非必填以外皆不可關閉）：
+
+    | 類別 | 項目 | 用途 |
+    |---|---|---|
+    | Location | Approximate location（由 IP 推得） | Advertising or marketing, Analytics, Fraud prevention |
+    | App activity | App interactions | Advertising or marketing, Analytics, Fraud prevention |
+    | App info and performance | Crash logs, Diagnostics | Analytics, Fraud prevention |
+    | Device or other IDs | Device or other IDs | Advertising or marketing, Analytics, Fraud prevention |
+
+- **Privacy policy** → 網址不變，內容要先換成含廣告的版本（`store/privacy-policy-with-ads.md`）。
+- **Target audience** 維持只勾 18 and over；若改動，AdMob 那邊的兒童導向設定也要一致。

@@ -67,8 +67,17 @@
         <item>西北</item>
     </string-array>
 
-    <!-- Purpose statement and permission disclosures -->
-    <string name="setup_purpose">Jog 是給開發者與 QA 用的定位測試工具，用來驗證地理圍欄、移動處理等定位相關功能，不必真的跑到現場。必須先在開發者選項把 Jog 選為模擬位置資訊應用程式才能運作。Jog 不會讀取、儲存或上傳你的真實位置，也不會連線到網際網路。</string>
+    <!-- Ad gate -->
+    <string name="panel_ad_badge">廣告</string>
+    <string name="unlock_title">解鎖自動移動與 Health 同步</string>
+    <string name="unlock_body">看一則短廣告，就能使用自動移動與 Health 同步，直到你關閉懸浮面板為止。</string>
+    <string name="unlock_watch">看廣告</string>
+    <string name="unlock_loading">廣告載入中…</string>
+    <string name="unlock_unavailable">廣告載入失敗，請確認網路連線後再試一次。</string>
+    <string name="unlock_not_finished">廣告還沒播完就被關掉了，所以沒有解鎖。</string>
+    <string name="unlock_retry">再試一次</string>
+
+    <!-- Purpose statement and permission disclosures（setup_purpose 在 src/noAds/res 與 src/ads/res）-->
     <string name="setup_privacy_policy">隱私權政策</string>
     <string name="disclosure_location_title">為什麼 Jog 需要定位權限</string>
     <string name="disclosure_location_body">Android 規定要有定位權限才能註冊模擬定位供應者。Jog 只把這個權限用在這件事上：不會讀取你的真實位置，任何資料都不會離開這台裝置。</string>

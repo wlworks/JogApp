@@ -1,0 +1,5 @@
+<resources>
+    <!-- 設定畫面的用途說明，含廣告的 build 用這一份（不含廣告的在 src/noAds/res）。
+         不能再說「不連網」：廣告由 Google AdMob 透過網路提供 -->
+    <string name="setup_purpose">Jog is a developer and QA tool for testing location-aware features such as geofences and movement handling, without leaving your desk. It only works after you choose it as the mock location app under Developer options. Jog never reads, stores, or uploads your real location. Auto move and Health sync are unlocked by watching an ad; ads are served over the internet by Google AdMob, which may collect device identifiers as described in the privacy policy.</string>
+</resources>

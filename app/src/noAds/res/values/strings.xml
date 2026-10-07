@@ -1,0 +1,5 @@
+<resources>
+    <!-- 設定畫面的用途說明。這句話講到「不連網」，只有不含廣告 SDK 的 build 才成立，
+         所以不放在 main：jog.ads=true 時改用 src/ads/res 的版本，打開開關不會忘了改文案 -->
+    <string name="setup_purpose">Jog is a developer and QA tool for testing location-aware features such as geofences and movement handling, without leaving your desk. It only works after you choose it as the mock location app under Developer options. Jog never reads, stores, or uploads your real location, and it does not connect to the internet.</string>
+</resources>

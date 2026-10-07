@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.window.OnBackInvokedCallback
@@ -151,6 +152,16 @@ class OverlayHost(
         layoutParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
         runCatching { windowManager.updateViewLayout(view, layoutParams) }
         updateBackCallback(register = focusable)
+    }
+
+    /**
+     * 暫時隱藏／恢復整個 overlay 視窗（解鎖畫面與廣告在前景時用）。
+     *
+     * 要在 View 這一層做：實測只把 Compose 內容清空的話，WRAP_CONTENT 的視窗縮成 0×0，
+     * 系統不會重繪，上一張畫面會原封不動留在螢幕上。
+     */
+    fun setVisible(visible: Boolean) {
+        rootView?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     /**

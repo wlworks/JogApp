@@ -13,3 +13,6 @@ keystore/
 keystore.properties
 *.jks
 *.keystore
+
+# AdMob 正式 id：上線前不放進公開 repo，範本見 admob.properties.example
+admob.properties

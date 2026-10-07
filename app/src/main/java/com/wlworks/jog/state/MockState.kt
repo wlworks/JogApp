@@ -41,6 +41,13 @@ data class MockUiState(
     val query: String = "",
     /** 最近一次成功解析到的地址，只給面板顯示；null 表示還沒搜過或是從上次座標還原。 */
     val resolvedLabel: String? = null,
+    /**
+     * 廣告關卡是否已過。廣告關閉的 build 裡不會有人讀它。
+     * 以「面板開著的這一次」為單位，Service 結束時清掉。
+     */
+    val rewardUnlocked: Boolean = false,
+    /** 解鎖畫面或廣告正在前景（由 GateScreenTracker 維護）。這段期間懸浮面板要讓開，不可以蓋在廣告上。 */
+    val rewardUnlocking: Boolean = false,
     val running: Boolean = false,
     val searching: Boolean = false,
     val speedTier: SpeedTier = SpeedTier.DEFAULT,

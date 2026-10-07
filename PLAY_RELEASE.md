@@ -129,7 +129,7 @@ targeting Android 14+ 起，Play Console 要求申報每一個前景服務類型
 | `ACCESS_MOCK_LOCATION` | 不需 Console 申報。它在現代 Android 上是宣告用的，實際授權走開發者選項 |
 | `SYSTEM_ALERT_WINDOW` | 沒有專門申報表，但**會引起人工審核注意**（惡意軟體常用）。說明文字要交代用途 |
 | `POST_NOTIFICATIONS` | 前景服務必需，無特殊要求 |
-| `INTERNET` | **已移除**，見第 4 節 |
+| `INTERNET` | **已移除**，見第 4 節。`jog.ads=true` 的 build 會由廣告 SDK 帶回來，見第 9 節 |
 | `health.WRITE_STEPS` / `health.WRITE_DISTANCE` | 需要 Console 申報，見第 8 節 |
 
 ---
@@ -257,6 +257,55 @@ App 申請了 `android.permission.health.WRITE_STEPS` 與 `WRITE_DISTANCE`，**�
 - [ ] Data Safety：資料只寫進裝置上的 Health Connect、不離開裝置，依「蒐集 = 傳出裝置」的定義仍是不蒐集；送審前照 Console 當下的題目再核對一次
 - [ ] 依 6.2 的規則，需要重新申報 Play 表單的變動算 MAJOR 版本
 - [ ] 之後若多申請資料類型（ExerciseSession、卡路里…），申報、政策、`disclosure_health_body` 三處要一起改
+
+---
+
+## 9. 打開廣告之前（`jog.ads=true`）
+
+目前出的 build 都是 `jog.ads=false`：不含廣告 SDK、沒有 INTERNET，前面各節的申報內容都還成立。
+**把開關打開等於推翻第 4、5、6 節的幾個前提**，以下全部做完才能出含廣告的版本。
+
+### 9.1 要申請／建立的東西（只有帳號持有人能做）
+
+- [x] **AdMob 帳號**（2026-10-06 建立）：<https://admob.google.com> 用開發者的 Google 帳號申請，填付款資料與稅務資訊
+      （台灣的個人帳號要填美國稅務表單）；之後要過身分與地址驗證才領得到款
+- [x] **在 AdMob 建立 App**（2026-10-06，以「尚未上架」建立；**上架後還要回來連結 Play**）：Apps → Add app → Android。App 還沒公開上架（封測中搜尋不到）時選
+      「No, 尚未在支援的商店上架」，填名稱即可先拿到 **App ID**（`ca-app-pub-…~…`）；這種狀態下廣告放送受限。
+      正式上架後回 AdMob 把它連結到 Play 上的 `com.wlworks.jog`，通過 app readiness review 才會完整放送
+- [x] **建立廣告單元**：類型 Rewarded，名稱 `unlock_features`，Partner bidding 未勾
+- [x] 兩個正式 id 已放進 gitignore 的 `admob.properties`（範本 `admob.properties.example`）。
+      **只有 release build 會用**，debug 一律是 Google 的測試 id，實機測試不會碰到正式廣告。
+      廣告開啟的 release 缺這個檔會 build 失敗
+- [ ] 把 `admob.properties` 和 keystore 一起備份到 repo 以外（遺失的話也能從 AdMob 後台查回來，不像 keystore 那麼要命）
+- [ ] Jog 正式上架後：AdMob → Apps → Jog → App settings 加上 Google Play 商店連結，等 app readiness review 通過才會完整放送
+- [ ] **app-ads.txt**：AdMob 會給一行內容，要放在「Play 商店資訊裡填的開發者網站」那個網域的根目錄
+      （`https://<網域>/app-ads.txt`）。目前的 GitHub Pages 是專案頁（`wlworks.github.io/JogApp/`），
+      根目錄要另外開 `wlworks.github.io` 這個 repo 才放得了；商店資訊的網站欄位也要填同一個網域
+- [ ] **同意聲明（UMP）**：AdMob → Privacy & messaging 建立 GDPR（歐盟／英國／瑞士）訊息，視需要加美國各州的訊息。
+      這是後台設定，App 端的程式見 9.2
+
+### 9.2 程式還沒做的
+
+- [ ] **接上 UMP SDK**：啟動時查詢是否需要同意 → 需要就顯示表單 → 取得同意後才能請求廣告；設定畫面要有
+      「重新選擇」的入口。**目前沒做**，因為同意表單要先在 AdMob 後台建立才驗得到
+- [ ] 要在實機上測 **release**（正式 id）之前，先在 AdMob → Settings → Test devices 把手機加成測試裝置 ——
+      用正式 id 看、點自己的廣告會被判為無效流量。debug build 不必，它本來就只用測試 id
+
+### 9.3 文案與申報（草稿已備好）
+
+- [x] App 內用途說明：`setup_purpose` 已依開關自動切換（`src/noAds/res` 與 `src/ads/res`），不必手動改
+- [ ] 隱私權政策：把 `store/privacy-policy-with-ads.md` 的段落換進 `docs/privacy-policy.md`，含廣告的版本送審前 push
+- [ ] Console 的 Ads、Advertising ID、Data safety 三張表：答案在 `store/console-answers.md` 最後一節
+- [ ] `store/listing.md` 繁中文案有「沒有帳號、分析、廣告或第三方 SDK」，要改
+- [ ] README「刻意不做的」關於不需要 INTERNET 的敘述
+
+### 9.4 出版
+
+- [ ] 依 6.2 的規則這是 MAJOR 版本（重新申報 Play 表單）
+- [ ] 用 `-Pjog.ads=true` 的 **release** build 實機走一次（debug 已驗過：看完解鎖、提早關掉不解鎖、沒網路不解鎖、
+      廣告播放時面板隱藏、關面板後重新上鎖；release 的 R8 版本只確認過編得出來）
+- [ ] 16 KB page size：`play-services-ads` 可能帶進新的 `.so`，照第 6 節的方法重驗
+- [ ] 確認 release 合併後的 manifest 有 `INTERNET`、`AD_ID` 與正式的 `APPLICATION_ID`（和 `admob.properties` 的 appId 相同）
 
 ---
 

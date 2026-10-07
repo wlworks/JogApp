@@ -1,0 +1,6 @@
+# 複製成 admob.properties（已 gitignore）並填入 AdMob 後台的正式 id。
+# 只有「廣告開啟（jog.ads=true）的 release build」會用；debug 一律用 Google 的測試 id。
+# 廣告開啟時打包 release 卻找不到這個檔或缺值，build 會直接失敗 —— 避免默默用測試 id 出版、沒有收益。
+# 這兩個值不是密碼（上架後會打包在 App 裡），不放進公開 repo 只是不想在廣告上線前提早曝光。
+appId=ca-app-pub-0000000000000000~0000000000
+rewardedUnitId=ca-app-pub-0000000000000000/0000000000

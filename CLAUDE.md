@@ -68,10 +68,18 @@ python tools/check_style.py
 ./gradlew :app:testDebugUnitTest    # 單元測試
 ./gradlew :app:installDebug         # 裝到已連線的裝置
 ./gradlew :app:bundleRelease        # 簽章的 release AAB；簽章讀 keystore.properties（gitignore），沒有就不簽
+./gradlew :app:installDebug -Pjog.ads=true   # 含 AdMob 的 build；預設（jog.ads=false）不含廣告 SDK
 ```
 
+`jog.ads` 決定編 `app/src/noAds/` 還是 `app/src/ads/`（各有一份 `RewardedGate` 與 `setup_purpose` 字串）。
+改 `RewardedGate` 的公開介面時兩份要一起改，並且**兩種 build 都編一次**。`check_style.py` 只掃 `src/main/java/`，
+這兩個目錄要自己照同樣的格式寫。出貨與封測的版本一律用預設值，不要把 `jog.ads=true` commit 進 `gradle.properties`。
+
+AdMob 正式 id 在 gitignore 的 `admob.properties`（範本 `admob.properties.example`），**不要寫進任何會 commit 的檔案**
+（repo 是公開的）。debug 不讀它、一律用測試 id；廣告開啟的 release 缺這個檔會 build 失敗，這是刻意的。
+
 單元測試只涵蓋 `core/`（`GeoMath`、`CoordinateParser`、`AutoRoam`、`HealthTally` 等純邏輯）。`MockLocationEngine`、
-`MovementController`、`HealthConnectStore` 與 Compose UI 沒有自動化覆蓋，改動這些要實機驗證。
+`MovementController`、`HealthConnectStore`、廣告關卡與 Compose UI 沒有自動化覆蓋，改動這些要實機驗證。
 
 編譯時 AGP 8.9.1 會警告 `compileSdk = 36` 超出測試範圍，這是已知的，不影響建置。
 
@@ -120,6 +128,10 @@ adb shell pm grant com.wlworks.jog.debug android.permission.health.WRITE_DISTANC
   `adb shell am start -a android.health.connect.action.HEALTH_HOME_SETTINGS` → Data and access →
   Steps / Distance，來源會標 Jog Debug。每 60 秒才寫一次，關掉同步或關面板會立刻補寫。
   測試資料會留在裝置的 Health Connect 裡，要清掉得在同一個畫面手動刪。
+- **測廣告關卡要用 `-Pjog.ads=true` 的 debug build，手機要連得上網**。debug 一律用 Google 的測試 id；
+  **不要在自己的手機上跑含廣告的 release build**，那會用正式 id，看、點廣告都算無效流量。Google 的測試獎勵廣告大約 5 秒就給獎勵，
+  之後按返回算「看完」；要測「沒看完」得在廣告出現後 1 秒內按返回。測沒網路用
+  `adb shell svc wifi disable`，測完記得 `enable`。測完把手機裝回預設（不含廣告）的 build。
 - 測繁中不必動系統語系，用 per-app locale：
   `adb shell cmd locale set-app-locales com.wlworks.jog.debug --locales zh-TW`，
   還原傳空字串。

@@ -55,6 +55,9 @@ import java.util.Locale
 /** 主色，用在啟用狀態的控制項上。 */
 private val Accent = Color(0xFF4DD0E1)
 
+/** 「廣告」小標的底色。刻意不用主色：主色代表「已啟用」，小標要表達的是「按了會先看廣告」。 */
+private val AdBadge = Color(0xFFFFD54F)
+
 /** 面板底色，帶一點透明度讓底下的 App 隱約透出來。 */
 private val Panel = Color(0xF01A1C1E)
 
@@ -142,13 +145,20 @@ fun CollapsedPanel(
     }
 }
 
-/** 懸浮面板本體：標題列、座標輸入、速度檔次、搖桿與開始／停止。 */
+/**
+ * 懸浮面板本體：標題列、座標輸入、速度檔次、搖桿與開始／停止。
+ *
+ * [adLocked] 為 true 表示這個 build 有廣告關卡且還沒解鎖：自動移動與 Health 同步的按鈕會帶
+ * 「廣告」小標，讓使用者按之前就知道會先看廣告。功能已經開著時不標（關閉不必看廣告）。
+ */
 @Composable
 fun FloatingPanel(
     state: MockUiState,
     actions: PanelActions,
-    dragHandle: Modifier
+    dragHandle: Modifier,
+    adLocked: Boolean = false
 ) {
+    val adBadge = if (adLocked) stringResource(R.string.panel_ad_badge) else null
     val focusManager = LocalFocusManager.current
     val latestActions by rememberUpdatedState(actions)
 
@@ -288,6 +298,7 @@ fun FloatingPanel(
             PillButton(
                 text = stringResource(R.string.panel_auto_move),
                 modifier = Modifier.weight(1f),
+                badge = adBadge.takeUnless { state.autoMove },
                 filled = state.autoMove,
                 onClick = {
                     dismissKeyboard()
@@ -297,6 +308,7 @@ fun FloatingPanel(
             PillButton(
                 text = stringResource(R.string.panel_health_sync),
                 modifier = Modifier.weight(1f),
+                badge = adBadge.takeUnless { state.healthSync },
                 filled = state.healthSync,
                 onClick = {
                     dismissKeyboard()
@@ -365,27 +377,48 @@ private fun IconText(symbol: String, description: String, onClick: () -> Unit) {
     )
 }
 
-/** 圓角長按鈕，filled 為 true 時用主色實心。 */
+/** 圓角長按鈕，filled 為 true 時用主色實心。[badge] 不是 null 時在文字前面加一個小標（例：「廣告」）。 */
 @Composable
 private fun PillButton(
     text: String,
     modifier: Modifier = Modifier,
+    badge: String? = null,
     enabled: Boolean = true,
     filled: Boolean = false,
     onClick: () -> Unit
 ) {
-    Text(
-        text = text,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Medium,
-        color = if (filled) Color.Black else Color.White,
+    Row(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(if (filled) Accent else Color.White.copy(alpha = 0.10f))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 10.dp),
-        textAlign = TextAlign.Center
-    )
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (badge != null) {
+            Text(
+                text = badge,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(AdBadge)
+                    .padding(horizontal = 4.dp, vertical = 1.dp)
+            )
+            Spacer(Modifier.width(6.dp))
+        }
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (filled) Color.Black else Color.White,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 /**

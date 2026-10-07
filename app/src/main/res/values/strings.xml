@@ -75,8 +75,19 @@
         <item>northwest</item>
     </string-array>
 
-    <!-- Purpose statement and permission disclosures -->
-    <string name="setup_purpose">Jog is a developer and QA tool for testing location-aware features such as geofences and movement handling, without leaving your desk. It only works after you choose it as the mock location app under Developer options. Jog never reads, stores, or uploads your real location, and it does not connect to the internet.</string>
+    <!-- Ad gate（只有 jog.ads=true 的 build 才看得到） -->
+    <!-- 按鈕上的小標：按下去會先看廣告 -->
+    <string name="panel_ad_badge">Ad</string>
+    <string name="unlock_title">Unlock auto move and Health sync</string>
+    <string name="unlock_body">Watch one short ad to use auto move and Health sync until you close the floating panel.</string>
+    <string name="unlock_watch">Watch ad</string>
+    <string name="unlock_loading">Loading ad…</string>
+    <string name="unlock_unavailable">Couldn\'t load an ad. Check your internet connection and try again.</string>
+    <string name="unlock_not_finished">The ad was closed before it finished, so nothing was unlocked.</string>
+    <string name="unlock_retry">Try again</string>
+
+    <!-- Purpose statement and permission disclosures。
+         setup_purpose 不在這裡：它依有沒有廣告而不同，放在 src/noAds/res 與 src/ads/res -->
     <string name="setup_privacy_policy">Privacy policy</string>
     <string name="disclosure_location_title">Why Jog needs location access</string>
     <string name="disclosure_location_body">Android requires the location permission to register a mock location provider. Jog uses it only for that: it does not read your real location, and nothing leaves this device.</string>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只在 jog.ads=true 時由 app/build.gradle.kts 疊進合併後的 manifest；不含廣告的 build 裡完全沒有這些宣告。
+     INTERNET / ACCESS_NETWORK_STATE / AD_ID 權限由 play-services-ads 自己的 manifest 帶進來，這裡不必重複宣告。 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
+        <!-- 廣告關卡的解鎖畫面。類別本身在 main（Service 要引用），但只有這個 build 會啟動它。
+             用完整類別名：疊加的 manifest 不保證以 App 的 namespace 解析相對名稱 -->
+        <activity
+            android:name="com.wlworks.jog.ads.UnlockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Jog.Translucent" />
+    </application>
+</manifest>

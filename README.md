@@ -23,6 +23,7 @@
 | `core/AutoRoam.kt` | 自動移動的方向與油門產生器：分段隨機轉向，速度仍由速度檔決定 |
 | `core/HealthTally.kt` | 累計待寫入 Health Connect 的距離與步數（步行步幅換算） |
 | `data/HealthConnectStore.kt` | Health Connect 寫入端，只寫步數與距離、不讀任何資料 |
+| `ads/` | 廣告關卡：`UnlockActivity`（解鎖畫面）、`GateScreenTracker`（廣告在前景時讓面板讓開）與結果型別。`RewardedGate` 的實作在 `src/noAds/`（預設）或 `src/ads/`（AdMob） |
 | `data/GeocodeRepository.kt` | 座標解析 → 系統 Geocoder（4s timeout）。不打任何外部服務 |
 | `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化；App 自己唯一寫入磁碟的東西 |
 | `mock/MockLocationEngine.kt` | LocationManager test provider + Fused mock mode |
@@ -48,6 +49,30 @@
 - 權限在設定畫面最後一列申請（先跳事前說明）；面板上開同步時缺權限會把人帶回設定畫面。
 - 上架要另外填健康資料申報，見 [PLAY_RELEASE.md](PLAY_RELEASE.md) 第 8 節。
 
+## 廣告開關
+
+`gradle.properties` 的 `jog.ads`，**預設 `false`，正式上架前不要打開**。
+
+| | `jog.ads=false`（預設） | `jog.ads=true` |
+|---|---|---|
+| 編進來的實作 | `src/noAds/` | `src/ads/` + `play-services-ads` |
+| 權限 | 不變，沒有 INTERNET | 多出 INTERNET、AD_ID 等 |
+| 自動移動／Health 同步 | 直接可用 | 按鈕帶「廣告」小標；第一次開啟前先看一則獎勵廣告 |
+| 設定畫面的用途說明 | 「不會連線到網際網路」 | 自動換成說明廣告由 AdMob 提供的版本 |
+
+打開時的規則：
+
+- 看完一則廣告，兩個功能一起解鎖，到懸浮面板關閉為止；下次開面板要重看。
+- 沒看完就關掉、或廣告載不到（沒網路、沒庫存），都**不解鎖**，解鎖畫面會說明原因並可重試。
+- 只擋「開啟」，關閉功能不必看廣告。
+- 解鎖畫面與廣告在前景時懸浮面板會隱藏。
+
+正式的廣告 id 放在 repo 根目錄的 `admob.properties`（已 gitignore，範本 `admob.properties.example`），
+**只有 release build 會用**；debug build 一律用 Google 公開的測試 id，實機測試不會碰到正式廣告
+（用正式 id 點自己的廣告會被 AdMob 判成無效流量）。廣告開啟時打包 release 卻沒有這個檔，build 會直接失敗；
+廣告關閉時不需要它。
+打開前要申請的東西與檢查清單在 [PLAY_RELEASE.md](PLAY_RELEASE.md) 第 9 節。
+
 ## Release build
 
 ```bash
@@ -60,7 +85,7 @@
 ## 刻意不做的
 
 **沒有遠端 geocoding 備援。** 地點解析只靠座標解析與系統 `Geocoder`，所以整個 App
-**不需要 INTERNET 權限**、沒有 API key 要管、Data Safety 也不必申報資料傳輸。
+（在預設的 `jog.ads=false` 下）**不需要 INTERNET 權限**、沒有 API key 要管、Data Safety 也不必申報資料傳輸。
 代價是少數沒有 geocoding backend 的機型查不到地名 —— 那些情況下 UI 會提示改輸入經緯度。
 
 如果之後真的需要遠端備援，在 `GeocodeRepository` 的 `Outcome.Unavailable` 分支接上去即可，
@@ -72,6 +97,7 @@
 - 路線錄製與回放
 - 自動移動的活動範圍限制（目前是純隨機遊走，時間久了會越走越遠）
 - Health 同步的其他檔次（慢跑／單車）與其他資料類型（ExerciseSession、卡路里）—— 目前只有步行的步數與距離
+- 廣告的歐盟同意流程（UMP）—— 打開廣告前必須補上，見 PLAY_RELEASE.md 第 9 節
 - 抖動模擬（固定座標太乾淨，容易被反作弊偵測；測試場景多半不需要）
 - 高度／室內樓層
 - 單元測試（`GeoMath`、`CoordinateParser` 最值得先補）

@@ -1,0 +1,8 @@
+<resources>
+    <!-- 解鎖畫面（UnlockActivity）用：只有一個對話框，背景透明讓底下的 App 繼續看得到。
+         只有含廣告的 build 會用到，所以放在 src/ads/res -->
+    <style name="Theme.Jog.Translucent" parent="Theme.Jog">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+</resources>

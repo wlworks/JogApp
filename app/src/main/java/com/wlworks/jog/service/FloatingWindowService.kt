@@ -36,6 +36,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.wlworks.jog.MainActivity
 import com.wlworks.jog.R
+import com.wlworks.jog.ads.GatedFeature
+import com.wlworks.jog.ads.RewardedGate
+import com.wlworks.jog.ads.UnlockActivity
 import com.wlworks.jog.core.DistanceFormat
 import com.wlworks.jog.core.GeoMath
 import com.wlworks.jog.core.HealthTally
@@ -66,8 +69,14 @@ class FloatingWindowService : LifecycleService() {
         /** 通知列「停止」動作帶的 intent action。 */
         const val ACTION_STOP = "com.wlworks.jog.STOP"
 
+        /** 解鎖畫面回報「廣告看完了」的 intent action，帶 [EXTRA_FEATURE]。 */
+        const val ACTION_UNLOCKED = "com.wlworks.jog.UNLOCKED"
+
         /** 前景服務通知所屬的頻道 id。 */
         private const val CHANNEL_ID = "jog_running"
+
+        /** [ACTION_UNLOCKED] 的 extra：使用者原本想開的功能（GatedFeature 的 name）。 */
+        const val EXTRA_FEATURE = "feature"
 
         /**
          * 多久把累計的步數／距離寫進 Health Connect 一次。官方對運動中步數的預期粒度是每分鐘一筆，
@@ -210,6 +219,18 @@ class FloatingWindowService : LifecycleService() {
     ) == PackageManager.PERMISSION_GRANTED
 
     /**
+     * 廣告關卡。還沒解鎖就拉起解鎖畫面並回 true，呼叫端這次先不動作；
+     * 使用者看完廣告後 [onStartCommand] 會收到 ACTION_UNLOCKED，再替他把 [feature] 打開。
+     * 廣告關閉的 build（RewardedGate.ENABLED = false）一律放行。只擋「開啟」，關閉功能不經過這裡。
+     */
+    private fun launchGateIfLocked(feature: GatedFeature): Boolean {
+        if (!RewardedGate.ENABLED || MockStateHolder.state.value.rewardUnlocked) return false
+        MockStateHolder.releaseInputFocus()
+        startActivity(UnlockActivity.intent(this, feature))
+        return true
+    }
+
+    /**
      * Health Connect 同步開著的期間，每 HEALTH_FLUSH_MS 寫一次。
      * 關掉時 collectLatest 會取消迴圈；最後一段由關閉的那一方（toggleHealthSync / onDestroy）補寫。
      */
@@ -260,6 +281,16 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
+    /** 解鎖畫面（廣告）在前景時把懸浮面板藏起來，離開後放回來。面板不可以蓋在廣告上。 */
+    private fun observeUnlockScreen() {
+        lifecycleScope.launch {
+            MockStateHolder.state
+                .map { it.rewardUnlocking }
+                .distinctUntilChanged()
+                .collect { unlocking -> overlay.setVisible(!unlocking) }
+        }
+    }
+
     /** 建好相依元件、確認權限、進入前景並掛上懸浮視窗。 */
     override fun onCreate() {
         super.onCreate()
@@ -297,12 +328,14 @@ class FloatingWindowService : LifecycleService() {
         observeStateForNotification()
         observeStateForPersistence()
         showOverlay()
+        // 要排在 showOverlay 之後：overlay 還沒掛上去時 setVisible 沒有對象
+        observeUnlockScreen()
     }
 
     /**
      * 收掉模擬、移除懸浮視窗，並把最後座標補存一次（可能落在節流間隔內還沒寫）。
-     * Health Connect 還沒寫的那一段也在這裡補寫；狀態是行程層級的，所以同步開關與累計數字
-     * 都要清掉，下次開面板從頭來（速度檔的鎖也跟著解開）。
+     * Health Connect 還沒寫的那一段也在這裡補寫；狀態是行程層級的，所以同步開關、累計數字與
+     * 廣告解鎖都要清掉，下次開面板從頭來（速度檔的鎖也跟著解開）。
      */
     override fun onDestroy() {
         movement.stop()
@@ -311,17 +344,33 @@ class FloatingWindowService : LifecycleService() {
         if (MockStateHolder.state.value.healthSync) flushHealth()
         MockStateHolder.state.value.current?.let(lastLocation::save)
         MockStateHolder.update {
-            it.copy(healthDistanceM = 0.0, healthSteps = 0L, healthSync = false)
+            it.copy(
+                healthDistanceM = 0.0,
+                healthSteps = 0L,
+                healthSync = false,
+                rewardUnlocked = false
+            )
         }
         super.onDestroy()
     }
 
-    /** 處理通知列的停止動作，其餘情況維持 START_STICKY。 */
+    /** 處理通知列的停止動作與解鎖畫面的回報，其餘情況維持 START_STICKY。 */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        if (intent?.action == ACTION_STOP) {
-            stopSelf()
-            return START_NOT_STICKY
+        when (intent?.action) {
+            ACTION_STOP -> {
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            ACTION_UNLOCKED -> {
+                MockStateHolder.update { it.copy(rewardUnlocked = true) }
+                // 替使用者把剛才想開的功能打開；已經開著就不要反過來關掉
+                val state = MockStateHolder.state.value
+                when (intent.getStringExtra(EXTRA_FEATURE)) {
+                    GatedFeature.AUTO_MOVE.name -> if (!state.autoMove) toggleAutoMove()
+                    GatedFeature.HEALTH_SYNC.name -> if (!state.healthSync) toggleHealthSync()
+                }
+            }
         }
         return START_STICKY
     }
@@ -394,6 +443,7 @@ class FloatingWindowService : LifecycleService() {
             } else {
                 FloatingPanel(
                     state = state,
+                    adLocked = RewardedGate.ENABLED && !state.rewardUnlocked,
                     dragHandle = dragHandle,
                     actions = PanelActions(
                         onClose = { stopSelf() },
@@ -460,6 +510,7 @@ class FloatingWindowService : LifecycleService() {
             MockStateHolder.message(getString(R.string.msg_need_target))
             return
         }
+        if (launchGateIfLocked(GatedFeature.AUTO_MOVE)) return
         if (!state.running) applyTarget(origin)
         // applyTarget 可能失敗（沒被選為 mock app），沒跑起來就不要亮自動移動
         MockStateHolder.update {
@@ -468,7 +519,8 @@ class FloatingWindowService : LifecycleService() {
     }
 
     /**
-     * 開／關 Health Connect 同步。開之前過兩關：裝置支援、寫入權限；
+     * 開／關 Health Connect 同步。開之前依序過三關：裝置支援、廣告關卡、寫入權限
+     * （裝置不支援就不必叫人看廣告）；
      * 權限只能從 Activity 申請，所以缺權限時把使用者帶回設定畫面。
      * 開啟的同時把速度檔切到步行並鎖住（見 MockUiState.healthSync）。
      */
@@ -482,6 +534,7 @@ class FloatingWindowService : LifecycleService() {
             MockStateHolder.message(getString(R.string.msg_health_unavailable))
             return
         }
+        if (launchGateIfLocked(GatedFeature.HEALTH_SYNC)) return
         lifecycleScope.launch {
             if (health.hasPermissions()) {
                 MockStateHolder.update {

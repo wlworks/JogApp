@@ -1,0 +1,3 @@
+<resources>
+    <string name="setup_purpose">Jog 是給開發者與 QA 用的定位測試工具，用來驗證地理圍欄、移動處理等定位相關功能，不必真的跑到現場。必須先在開發者選項把 Jog 選為模擬位置資訊應用程式才能運作。Jog 不會讀取、儲存或上傳你的真實位置。自動移動與 Health 同步需要先看一則廣告才能使用；廣告由 Google AdMob 透過網路提供，可能會蒐集裝置識別碼，詳見隱私權政策。</string>
+</resources>
