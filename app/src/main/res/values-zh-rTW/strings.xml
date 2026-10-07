@@ -16,6 +16,7 @@
     <string name="setup_mock_app">開發者選項 → 選取模擬位置資訊應用程式 → Jog</string>
     <string name="setup_health">Health Connect 寫入權限（選用）</string>
     <string name="setup_health_unavailable">這台裝置無法使用 Health Connect</string>
+    <string name="setup_ad_privacy">廣告隱私設定</string>
     <string name="setup_start">啟動懸浮視窗</string>
     <string name="setup_stop">關閉懸浮視窗</string>
 
@@ -76,6 +77,7 @@
     <string name="unlock_unavailable">廣告載入失敗，請確認網路連線後再試一次。</string>
     <string name="unlock_not_finished">廣告還沒播完就被關掉了，所以沒有解鎖。</string>
     <string name="unlock_retry">再試一次</string>
+    <string name="unlock_no_consent">在廣告隱私表單做出選擇之前無法顯示廣告。按「再試一次」重新開啟表單。</string>
 
     <!-- Purpose statement and permission disclosures（setup_purpose 在 src/noAds/res 與 src/ads/res）-->
     <string name="setup_privacy_policy">隱私權政策</string>

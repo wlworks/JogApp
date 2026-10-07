@@ -51,27 +51,27 @@
 
 ## 廣告開關
 
-`gradle.properties` 的 `jog.ads`，**預設 `false`，正式上架前不要打開**。
+`gradle.properties` 的 `jog.ads`，**3.0.0 起預設 `true`**；命令列加 `-Pjog.ads=false` 可編出完全不含廣告 SDK 的版本。
 
-| | `jog.ads=false`（預設） | `jog.ads=true` |
+| | `jog.ads=true`（預設） | `-Pjog.ads=false` |
 |---|---|---|
-| 編進來的實作 | `src/noAds/` | `src/ads/` + `play-services-ads` |
-| 權限 | 不變，沒有 INTERNET | 多出 INTERNET、AD_ID 等 |
-| 自動移動／Health 同步 | 直接可用 | 按鈕帶「廣告」小標；第一次開啟前先看一則獎勵廣告 |
-| 設定畫面的用途說明 | 「不會連線到網際網路」 | 自動換成說明廣告由 AdMob 提供的版本 |
+| 編進來的實作 | `src/ads/` + `play-services-ads` + UMP | `src/noAds/` |
+| 權限 | 多出 INTERNET、AD_ID 等 | 沒有 INTERNET |
+| 自動移動／Health 同步 | 按鈕帶「廣告」小標；開啟前先看一則獎勵廣告 | 直接可用 |
+| 設定畫面 | 用途說明提到 AdMob；需要同意的地區多一列「廣告隱私設定」 | 用途說明是「不會連線到網際網路」 |
 
-打開時的規則：
+廣告的規則：
 
 - 看完一則廣告，兩個功能一起解鎖，到懸浮面板關閉為止；下次開面板要重看。
 - 沒看完就關掉、或廣告載不到（沒網路、沒庫存），都**不解鎖**，解鎖畫面會說明原因並可重試。
-- 只擋「開啟」，關閉功能不必看廣告。
-- 解鎖畫面與廣告在前景時懸浮面板會隱藏。
+- 只擋「開啟」，關閉功能不必看廣告。解鎖畫面與廣告在前景時懸浮面板會隱藏。
+- **歐盟同意（UMP）**：按「看廣告」時才查詢，不在開 App 時問。歐盟、英國、瑞士的使用者會先看到 Google 的同意表單
+  （內容在 AdMob 後台 Privacy & messaging 設定）；選「不同意」仍可看非個人化廣告。設定畫面的「廣告隱私設定」可隨時改選。
 
-正式的廣告 id 放在 repo 根目錄的 `admob.properties`（已 gitignore，範本 `admob.properties.example`），
-**只有 release build 會用**；debug build 一律用 Google 公開的測試 id，實機測試不會碰到正式廣告
-（用正式 id 點自己的廣告會被 AdMob 判成無效流量）。廣告開啟時打包 release 卻沒有這個檔，build 會直接失敗；
-廣告關閉時不需要它。
-打開前要申請的東西與檢查清單在 [PLAY_RELEASE.md](PLAY_RELEASE.md) 第 9 節。
+正式的廣告 id 放在 repo 根目錄的 `admob.properties`（已 gitignore，範本 `admob.properties.example`）。
+廣告單元：debug 一律用 Google 的測試 id，release 才用正式 id（用正式 id 點自己的廣告會被 AdMob 判成無效流量）。
+App id：有這個檔時 debug 也用正式的，才測得到後台設定的同意表單。廣告開啟時打包 release 卻沒有這個檔，build 會直接失敗。
+上架前的檢查清單在 [PLAY_RELEASE.md](PLAY_RELEASE.md) 第 9 節。
 
 ## Release build
 
@@ -85,7 +85,7 @@
 ## 刻意不做的
 
 **沒有遠端 geocoding 備援。** 地點解析只靠座標解析與系統 `Geocoder`，所以整個 App
-（在預設的 `jog.ads=false` 下）**不需要 INTERNET 權限**、沒有 API key 要管、Data Safety 也不必申報資料傳輸。
+（在 `-Pjog.ads=false` 的無廣告版本下）**不需要 INTERNET 權限**、沒有 API key 要管、Data Safety 也不必申報資料傳輸。
 代價是少數沒有 geocoding backend 的機型查不到地名 —— 那些情況下 UI 會提示改輸入經緯度。
 
 如果之後真的需要遠端備援，在 `GeocodeRepository` 的 `Outcome.Unavailable` 分支接上去即可，
@@ -97,7 +97,6 @@
 - 路線錄製與回放
 - 自動移動的活動範圍限制（目前是純隨機遊走，時間久了會越走越遠）
 - Health 同步的其他檔次（慢跑／單車）與其他資料類型（ExerciseSession、卡路里）—— 目前只有步行的步數與距離
-- 廣告的歐盟同意流程（UMP）—— 打開廣告前必須補上，見 PLAY_RELEASE.md 第 9 節
 - 抖動模擬（固定座標太乾淨，容易被反作弊偵測；測試場景多半不需要）
 - 高度／室內樓層
 - 單元測試（`GeoMath`、`CoordinateParser` 最值得先補）

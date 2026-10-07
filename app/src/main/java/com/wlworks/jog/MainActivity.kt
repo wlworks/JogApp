@@ -46,6 +46,7 @@ import androidx.core.content.ContextCompat
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import com.wlworks.jog.ads.RewardedGate
 import com.wlworks.jog.data.HealthConnectStore
 import com.wlworks.jog.service.FloatingWindowService
 
@@ -60,6 +61,9 @@ import com.wlworks.jog.service.FloatingWindowService
  *
  * 另有一列選用的 Health Connect 寫入權限：只有要用「Health 同步」才需要，不影響啟動。
  * 權限只能從 Activity 申請，所以懸浮面板發現缺權限時會帶 [EXTRA_REQUEST_HEALTH] 把人送回這裡。
+ *
+ * 含廣告的 build 在需要同意的地區（歐盟等）會多一列「廣告隱私設定」，讓使用者隨時改變同意選擇 ——
+ * 這是 UMP 的規定，入口只在 [RewardedGate.checkPrivacyOptions] 說需要時才出現。
  *
  * 畫面上同時放了用途說明與隱私權政策連結。SYSTEM_ALERT_WINDOW 與定位權限是 Play 審核
  * 最在意的兩項，App 內講清楚比只在商店文案講有用。
@@ -80,6 +84,9 @@ class MainActivity : ComponentActivity() {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra(EXTRA_REQUEST_HEALTH, true)
     }
+
+    /** 是否要顯示「廣告隱私設定」列；查詢是非同步的，所以另外存一份給畫面讀。 */
+    private var adPrivacyAvailable by mutableStateOf(false)
 
     private val health by lazy { HealthConnectStore(this) }
 
@@ -142,6 +149,8 @@ class MainActivity : ComponentActivity() {
                     healthAvailable = health.isAvailable(),
                     healthGranted = healthGranted,
                     onRequestHealth = { showHealthDisclosure = true },
+                    adPrivacyAvailable = adPrivacyAvailable,
+                    onOpenAdPrivacy = { RewardedGate.showPrivacyOptions(this) },
                     onOpenDeveloperOptions = ::openDeveloperOptions,
                     onOpenPrivacyPolicy = ::openPrivacyPolicy,
                     onStart = { FloatingWindowService.start(this) },
@@ -182,6 +191,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         permissionTick++
+        refreshAdPrivacy()
         refreshHealth()
     }
 
@@ -199,6 +209,12 @@ class MainActivity : ComponentActivity() {
         runCatching {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
         }
+    }
+
+    /** 含廣告的 build 才查：這個使用者需不需要「廣告隱私設定」入口。 */
+    private fun refreshAdPrivacy() {
+        if (!RewardedGate.ENABLED) return
+        RewardedGate.checkPrivacyOptions(this) { adPrivacyAvailable = it }
     }
 
     /** 重新查一次 Health Connect 權限並更新畫面。 */
@@ -317,6 +333,8 @@ private fun SetupScreen(
     healthAvailable: Boolean,
     healthGranted: Boolean,
     onRequestHealth: () -> Unit,
+    adPrivacyAvailable: Boolean,
+    onOpenAdPrivacy: () -> Unit,
     onOpenDeveloperOptions: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onStart: () -> Unit,
@@ -361,6 +379,10 @@ private fun SetupScreen(
             CheckRow(stringResource(R.string.setup_health), healthGranted, onRequestHealth)
         } else {
             CheckRow(stringResource(R.string.setup_health_unavailable), granted = false, onClick = {})
+        }
+        // 沒有「已完成」的狀態可言，和開發者選項那列一樣只顯示箭頭
+        if (adPrivacyAvailable) {
+            CheckRow(stringResource(R.string.setup_ad_privacy), granted = null, onClick = onOpenAdPrivacy)
         }
 
         Action(stringResource(R.string.setup_start), enabled = ready, onClick = onStart)

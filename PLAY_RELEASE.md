@@ -284,13 +284,14 @@ App 申請了 `android.permission.health.WRITE_STEPS` 與 `WRITE_DISTANCE`，**�
 - [ ] **app-ads.txt**：AdMob 會給一行內容，要放在「Play 商店資訊裡填的開發者網站」那個網域的根目錄
       （`https://<網域>/app-ads.txt`）。目前的 GitHub Pages 是專案頁（`wlworks.github.io/JogApp/`），
       根目錄要另外開 `wlworks.github.io` 這個 repo 才放得了；商店資訊的網站欄位也要填同一個網域
-- [ ] **同意聲明（UMP）**：AdMob → Privacy & messaging 建立 GDPR（歐盟／英國／瑞士）訊息，視需要加美國各州的訊息。
-      這是後台設定，App 端的程式見 9.2
+- [x] **同意聲明（UMP）**（2026-10-07）：AdMob → Privacy & messaging → European regulations 已發布「Jog EU consent」：
+      英文 + 7 種歐洲語言、Consent / Do not consent / Manage options、隱私權政策網址。美國各州的訊息暫不做
 
 ### 9.2 程式還沒做的
 
-- [ ] **接上 UMP SDK**：啟動時查詢是否需要同意 → 需要就顯示表單 → 取得同意後才能請求廣告；設定畫面要有
-      「重新選擇」的入口。**目前沒做**，因為同意表單要先在 AdMob 後台建立才驗得到
+- [x] **接上 UMP SDK**（2026-10-07）：按「看廣告」時查詢 → 需要就顯示同意表單 → 有結果才請求廣告；
+      設定畫面在需要時多一列「廣告隱私設定」可重新選擇。已用模擬歐盟實測：表單跳出、選不同意仍可播非個人化廣告、
+      從設定畫面改選同意後下次不再詢問
 - [ ] 要在實機上測 **release**（正式 id）之前，先在 AdMob → Settings → Test devices 把手機加成測試裝置 ——
       用正式 id 看、點自己的廣告會被判為無效流量。debug build 不必，它本來就只用測試 id
 

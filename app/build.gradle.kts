@@ -25,17 +25,18 @@ val appVersionCode = appVersion.split('.').map(String::toInt).also { parts ->
     }
 }.let { (major, minor, patch) -> major * 10_000 + minor * 100 + patch }
 
-// 廣告關卡的總開關，正式上架前維持 false。開法：gradle.properties 改 jog.ads=true，或命令列加 -Pjog.ads=true。
-// false 時編 src/noAds/（不含任何廣告 SDK、不會多出 INTERNET / AD_ID 權限），true 時編 src/ads/ 並帶進 AdMob。
+// 廣告關卡的總開關，3.0.0 起 gradle.properties 預設 true；命令列加 -Pjog.ads=false 可編出無廣告版本。
+// false 時編 src/noAds/（不含任何廣告 SDK、不會多出 INTERNET / AD_ID 權限），true 時編 src/ads/ 並帶進 AdMob 與 UMP。
 // 不用 product flavor 是為了讓 task 名稱維持 installDebug / bundleRelease，不必跟著改指令與文件。
 val adsEnabled = providers.gradleProperty("jog.ads").map(String::toBoolean).getOrElse(false)
 val adsSourceDir = if (adsEnabled) "src/ads" else "src/noAds"
 
 // AdMob 的 App id 與獎勵廣告單元 id。
-// - 正式 id 放在 gitignore 的 admob.properties（範本 admob.properties.example），**只給 release 用**。
-//   repo 是公開的，廣告上線前不想讓 id 提早曝光；做法和 keystore.properties 一樣。
-// - debug 一律用 Google 公開的測試 id —— 開發者用正式 id 在自己手機上看、點廣告會被 AdMob 判成
-//   無效流量，輕則限制放送、重則停權，所以測試流程從設定上就碰不到正式 id。
+// - 正式 id 放在 gitignore 的 admob.properties（範本 admob.properties.example）；做法和 keystore.properties 一樣。
+// - 廣告單元 id：debug 一律用 Google 公開的測試 id —— 開發者用正式 id 在自己手機上看、點廣告會被
+//   AdMob 判成無效流量，輕則限制放送、重則停權，所以測試流程從設定上就碰不到正式的廣告單元。
+// - App id：debug 有 admob.properties 時也用正式的。App id 本身不會產生曝光或點擊，但 UMP 的同意表單
+//   是依 App id 去 AdMob 後台抓的，用測試 App id 就測不到自己設定的同意訊息。
 // - 廣告開啟的 release 找不到正式 id 時 build 失敗（見 checkAdmobReleaseIds），不默默退回測試 id。
 //   廣告關閉時不需要這個檔，clone 下來就能 build。
 val admobTestAppId = "ca-app-pub-3940256099942544~3347511713"
@@ -46,6 +47,10 @@ val admobProperties: Properties? = rootProject.file("admob.properties")
 val admobAppId: String? = admobProperties?.getProperty("appId")?.trim()?.takeIf { it.isNotEmpty() }
 val admobRewardedUnitId: String? =
     admobProperties?.getProperty("rewardedUnitId")?.trim()?.takeIf { it.isNotEmpty() }
+
+// UMP 測試用：把這台裝置當成在歐盟，人在台灣也能測同意表單。值是 UMP 第一次執行時 logcat 印出的
+// hashed device id，只放命令列或 ~/.gradle/gradle.properties（-Pjog.ump.debugDevice=...），只有 debug 會用。
+val umpDebugDevice = providers.gradleProperty("jog.ump.debugDevice").getOrElse("")
 
 android {
     namespace = "com.wlworks.jog"
@@ -58,9 +63,10 @@ android {
         versionCode = appVersionCode
         versionName = appVersion
 
-        // 預設（debug）用測試 id，release 在下面的 buildTypes 換成正式 id
+        // 預設（debug）的廣告單元用測試 id，release 在下面的 buildTypes 換成正式 id
         buildConfigField("String", "ADMOB_REWARDED_UNIT_ID", "\"$admobTestRewardedUnitId\"")
-        manifestPlaceholders["admobAppId"] = admobTestAppId
+        buildConfigField("String", "UMP_DEBUG_DEVICE", "\"$umpDebugDevice\"")
+        manifestPlaceholders["admobAppId"] = admobAppId ?: admobTestAppId
     }
 
     sourceSets["main"].apply {
@@ -93,6 +99,8 @@ android {
                 "\"${admobRewardedUnitId ?: admobTestRewardedUnitId}\""
             )
             manifestPlaceholders["admobAppId"] = admobAppId ?: admobTestAppId
+            // 模擬歐盟只給 debug；release 不論命令列帶了什麼都清掉
+            buildConfigField("String", "UMP_DEBUG_DEVICE", "\"\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -153,7 +161,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.play.services.location)
     implementation(libs.androidx.health.connect)
-    if (adsEnabled) implementation(libs.play.services.ads)
+    if (adsEnabled) {
+        implementation(libs.play.services.ads)
+        implementation(libs.google.ump)
+    }
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

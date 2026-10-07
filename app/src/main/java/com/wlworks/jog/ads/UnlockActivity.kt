@@ -53,7 +53,7 @@ class UnlockActivity : ComponentActivity() {
     }
 
     /** 畫面目前在哪一步。 */
-    private enum class Stage { LOADING, NOT_FINISHED, PROMPT, SHOWING, UNAVAILABLE }
+    private enum class Stage { LOADING, NO_CONSENT, NOT_FINISHED, PROMPT, SHOWING, UNAVAILABLE }
 
     private var stage by mutableStateOf(Stage.PROMPT)
 
@@ -77,6 +77,7 @@ class UnlockActivity : ComponentActivity() {
                                 )
                                 Text(stringResource(R.string.unlock_loading))
                             }
+                            Stage.NO_CONSENT -> Text(stringResource(R.string.unlock_no_consent))
                             Stage.NOT_FINISHED -> Text(stringResource(R.string.unlock_not_finished))
                             Stage.PROMPT -> Text(stringResource(R.string.unlock_body))
                             Stage.UNAVAILABLE -> Text(stringResource(R.string.unlock_unavailable))
@@ -121,6 +122,7 @@ class UnlockActivity : ComponentActivity() {
                 finish()
             }
             RewardOutcome.DISMISSED -> stage = Stage.NOT_FINISHED
+            RewardOutcome.NO_CONSENT -> stage = Stage.NO_CONSENT
             RewardOutcome.UNAVAILABLE -> stage = Stage.UNAVAILABLE
         }
     }
@@ -131,7 +133,7 @@ class UnlockActivity : ComponentActivity() {
         if (stage != Stage.SHOWING && !isChangingConfigurations) finish()
     }
 
-    /** 使用者同意看廣告（或重試）：切到載入中並交給 [RewardedGate]。 */
+    /** 使用者同意看廣告（或重試）：切到載入中並交給 [RewardedGate]，需要的話它會先跳同意表單。 */
     private fun watch() {
         stage = Stage.LOADING
         RewardedGate.show(

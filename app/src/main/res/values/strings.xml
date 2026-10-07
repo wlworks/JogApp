@@ -20,6 +20,7 @@
     <string name="setup_mock_app">Developer options → Select mock location app → Jog</string>
     <string name="setup_health">Health Connect write access (optional)</string>
     <string name="setup_health_unavailable">Health Connect is not available on this device</string>
+    <string name="setup_ad_privacy">Ad privacy choices</string>
     <string name="setup_start">Start floating panel</string>
     <string name="setup_stop">Stop floating panel</string>
 
@@ -85,6 +86,7 @@
     <string name="unlock_unavailable">Couldn\'t load an ad. Check your internet connection and try again.</string>
     <string name="unlock_not_finished">The ad was closed before it finished, so nothing was unlocked.</string>
     <string name="unlock_retry">Try again</string>
+    <string name="unlock_no_consent">Ads can\'t be shown until you make a choice in the ad privacy form. Try again to open it.</string>
 
     <!-- Purpose statement and permission disclosures。
          setup_purpose 不在這裡：它依有沒有廣告而不同，放在 src/noAds/res 與 src/ads/res -->
