@@ -62,4 +62,20 @@ MAJOR：新增 Health Connect 寫入權限，Play Console 要另外填健康資�
 </zh-TW>
 ```
 
+## 3.0.0（versionCode 30000）— 獎勵廣告解鎖自動移動與 Health 同步
+
+MAJOR：開始含廣告（Google AdMob），Play Console 的廣告聲明、Advertising ID、Data Safety 都要重新申報，
+隱私權政策也要先換成含廣告的版本（見 PLAY_RELEASE.md 第 9 節）。
+
+```
+<en-US>
+• Auto move and Health sync are now unlocked by watching one short rewarded ad, valid until you close the floating panel. Teleport, the joystick, random jump and everything else work without ads.
+• Users in the EEA, UK and Switzerland are asked for ad consent first and can change their choice anytime under Ad privacy choices on the setup screen.
+</en-US>
+<zh-TW>
+• 自動移動與 Health 同步改為觀看一則短獎勵廣告後解鎖，效期到關閉懸浮面板為止。瞬移、搖桿、隨機跳等其他功能都不需要看廣告。
+• 歐洲經濟區、英國與瑞士的使用者會先被詢問廣告同意，之後可隨時在設定畫面的「廣告隱私設定」更改。
+</zh-TW>
+```
+
 之後每次上傳新版：`versionCode` +1，在這裡加一段，只寫這版改了什麼。

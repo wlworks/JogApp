@@ -5,13 +5,30 @@ title: Jog Privacy Policy
 
 # Jog Privacy Policy
 
-**Effective date: 2026-10-02**
+**Effective date: 2026-10-12**
 
-Jog ("the app") is a mock location tool for development and QA testing, published by WLWorks. This policy explains what the app does with data. The short version: **Jog does not collect, store or transmit any personal data.**
+Jog ("the app") is a mock location tool for development and QA testing, published by WLWorks. This policy explains what the app does with data. The short version: **Jog itself does not collect, store or transmit your personal data. The app shows ads through Google AdMob, and AdMob collects some device data to do so, as described below.**
 
 ## Data collection
 
-Jog does not collect any personal or device data. It contains no analytics, crash reporting, advertising or any other third-party SDK that collects data. The app does not request the INTERNET permission, so it has no way to send data anywhere.
+Jog itself does not collect any personal or device data, and has no analytics or crash reporting of its own.
+
+Jog shows rewarded ads through **Google AdMob**. Auto move and Health sync are unlocked by watching an ad; the rest of the app works without ads. To request and show ads, the AdMob SDK connects to the internet and may collect and share with Google and its advertising partners:
+
+- device and advertising identifiers (such as the Android advertising ID and app set ID),
+- IP address, from which an approximate location may be derived,
+- how you interact with ads and with the app (for example ad views and taps),
+- diagnostic information about app and SDK performance.
+
+Google uses this data for advertising, analytics and fraud prevention. Details: <https://policies.google.com/technologies/partner-sites>
+
+The simulated coordinates you enter in Jog, your real location, and anything Jog writes to Health Connect are **not** shared with AdMob.
+
+### Your choices
+
+- You can reset or delete your advertising ID, or opt out of ad personalisation, in Android Settings → Privacy → Ads.
+- If you are in the European Economic Area, the UK or Switzerland, Jog asks for your consent through Google's consent form before requesting ads. You can change your choice at any time under **Ad privacy choices** on the setup screen. If you do not consent, any ads you watch are non-personalised.
+- If you do not watch an ad, auto move and Health sync stay locked; no ad is requested until you choose to watch one.
 
 ## Permissions and why they are needed
 
@@ -20,6 +37,7 @@ Jog does not collect any personal or device data. It contains no analytics, cras
 - **Display over other apps** (`SYSTEM_ALERT_WINDOW`). Shows the floating control panel while you test another app.
 - **Notifications** (`POST_NOTIFICATIONS`) and **foreground service**. Keeps a persistent notification visible while simulation is running so you can stop it at any time.
 - **Health Connect write access** (`WRITE_STEPS`, `WRITE_DISTANCE`). Optional, and only used by the Health sync feature described below.
+- **Internet access** (`INTERNET`, `ACCESS_NETWORK_STATE`) and **advertising ID** (`AD_ID`). Used only by the Google AdMob SDK to load and show ads.
 
 ## Health Connect
 
@@ -51,13 +69,30 @@ Questions about this policy can be sent to WLWorks at <willy78831@gmail.com>, or
 
 # Jog 隱私權政策
 
-**生效日期：2026-10-02**
+**生效日期：2026-10-12**
 
-Jog（以下稱「本 App」）是 WLWorks 發行的開發與 QA 測試用模擬定位工具。本政策說明本 App 如何處理資料。一句話版本：**Jog 不蒐集、不儲存、不傳輸任何個人資料。**
+Jog（以下稱「本 App」）是 WLWorks 發行的開發與 QA 測試用模擬定位工具。本政策說明本 App 如何處理資料。一句話版本：**Jog 本身不蒐集、不儲存、不傳輸你的個人資料。App 透過 Google AdMob 顯示廣告，AdMob 為此會蒐集部分裝置資料，詳見下文。**
 
 ## 資料蒐集
 
-Jog 不蒐集任何個人或裝置資料。App 內沒有分析、當機回報、廣告或任何其他會蒐集資料的第三方 SDK。App 沒有申請 INTERNET 權限，因此沒有任何管道可以把資料送到外部。
+Jog 本身不蒐集任何個人或裝置資料，也沒有自己的分析或當機回報。
+
+Jog 透過 **Google AdMob** 顯示獎勵廣告。自動移動與 Health 同步需要先看一則廣告才能使用，其餘功能不需要看廣告。為了請求與顯示廣告，AdMob SDK 會連線到網際網路，並可能蒐集下列資料、與 Google 及其廣告合作夥伴分享：
+
+- 裝置與廣告識別碼（例如 Android 廣告 ID、app set ID）
+- IP 位址（可據以推得概略位置）
+- 你與廣告及 App 的互動（例如廣告的曝光與點擊）
+- App 與 SDK 效能相關的診斷資訊
+
+Google 將這些資料用於廣告、分析與防止詐欺。詳情：<https://policies.google.com/technologies/partner-sites>
+
+你在 Jog 輸入的模擬座標、你的真實位置、以及 Jog 寫入 Health Connect 的資料，都**不會**提供給 AdMob。
+
+### 你的選擇
+
+- 你可以在 Android 設定 → 隱私權 → 廣告 重設或刪除廣告 ID，或停用個人化廣告。
+- 如果你在歐洲經濟區、英國或瑞士，Jog 會在請求廣告前透過 Google 的同意表單詢問你的選擇，之後可隨時在設定畫面的**廣告隱私設定**更改。不同意的話，你看到的廣告都是非個人化廣告。
+- 不看廣告的話，自動移動與 Health 同步會維持鎖定；在你選擇觀看之前，App 不會請求任何廣告。
 
 ## 權限與用途
 
@@ -66,6 +101,7 @@ Jog 不蒐集任何個人或裝置資料。App 內沒有分析、當機回報、
 - **顯示在其他應用程式上層**（`SYSTEM_ALERT_WINDOW`）。在你測試其他 App 時顯示懸浮控制面板。
 - **通知**（`POST_NOTIFICATIONS`）與**前景服務**。模擬進行中持續顯示常駐通知，讓你隨時可以停止。
 - **Health Connect 寫入權限**（`WRITE_STEPS`、`WRITE_DISTANCE`）。選用，只有下方說明的 Health 同步功能會用到。
+- **網路存取**（`INTERNET`、`ACCESS_NETWORK_STATE`）與**廣告 ID**（`AD_ID`）。只由 Google AdMob SDK 用來載入與顯示廣告。
 
 ## Health Connect
 

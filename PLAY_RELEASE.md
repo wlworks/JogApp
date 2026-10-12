@@ -226,6 +226,8 @@ Play 不接受重複的 `versionCode`，所以**同一個版本號不能上傳�
   2026-10-07 由封測直接推上 Production，第一個正式版
 - 2.0.0（versionCode 20000）— 自動移動、Health 同步（新增 Health Connect 寫入權限，需健康資料申報）、
   未選為模擬位置應用程式時的提示。廣告關卡在程式裡但 `jog.ads=false`，這版不含廣告
+- 3.0.0（versionCode 30000）— 打開廣告：自動移動／Health 同步需看獎勵廣告解鎖，歐盟同意流程（UMP），
+  設定畫面的廣告隱私設定。廣告、Advertising ID、Data Safety 重新申報，隱私權政策換成含廣告的版本
 
 ### 16 KB page size
 

@@ -214,9 +214,11 @@ Target audience、News、Data safety、Government、Financial、Health、Privacy
   檢查清單見 `PLAY_RELEASE.md` 第 8 節。
 - **Data safety** → 仍是 No：資料只寫進裝置上的 Health Connect，不傳出裝置。送審時照 Console 當下的題目再核對。
 
-### 含廣告的版本（`jog.ads=true`）
+### 含廣告的版本（3.0.0 起，`jog.ads=true`）
 
-以下依 Google 公布的 AdMob SDK 資料揭露說明整理，送審前請對照 AdMob 當時的官方說明再核對一次。
+以下依 Google 公布的 AdMob SDK 資料揭露說明整理（2026-10-07 對照
+<https://developers.google.com/admob/android/privacy/play-data-disclosure>）：SDK 自動蒐集並分享 IP 位址（推估概略位置）、
+使用者與產品的互動、診斷資訊、裝置與帳號識別碼，全部以 TLS 加密傳輸。送審前請再對照一次。
 
 - **Ads** → **Yes, my app contains ads.**
 - **Advertising ID** → **Yes**，用途勾 **Advertising or marketing**。
@@ -228,10 +230,13 @@ Target audience、News、Data safety、Government、Financial、Health、Privacy
 
     | 類別 | 項目 | 用途 |
     |---|---|---|
-    | Location | Approximate location（由 IP 推得） | Advertising or marketing, Analytics, Fraud prevention |
-    | App activity | App interactions | Advertising or marketing, Analytics, Fraud prevention |
-    | App info and performance | Crash logs, Diagnostics | Analytics, Fraud prevention |
-    | Device or other IDs | Device or other IDs | Advertising or marketing, Analytics, Fraud prevention |
+    | Location | Approximate location（由 IP 推得） | Advertising or marketing |
+    | App activity | App interactions | Advertising or marketing, Analytics, Fraud prevention, security, and compliance |
+    | App info and performance | Diagnostics | Analytics, Fraud prevention, security, and compliance |
+    | Device or other IDs | Device or other IDs | Advertising or marketing, Fraud prevention, security, and compliance |
+
+    每一項都答：**Collected** 與 **Shared** 都勾；不是 ephemeral；**Users can't choose**（看廣告解鎖時必須請求廣告）。
+    Health Connect 的步數與距離只寫進裝置上的 Health Connect、不傳出裝置，仍不算 Data Safety 的「蒐集」。
 
 - **Privacy policy** → 網址不變，內容要先換成含廣告的版本（`store/privacy-policy-with-ads.md`）。
 - **Target audience** 維持只勾 18 and over；若改動，AdMob 那邊的兒童導向設定也要一致。
