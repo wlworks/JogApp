@@ -19,7 +19,7 @@ Jog: Mock GPS Location Tester
 **Short description**（≤ 80 字元）
 
 ```
-Developer tool for testing location features. Requires Developer options.
+Mock GPS location with joystick, teleport and auto move for testing apps
 ```
 
 **Full description**（≤ 4000 字元）
@@ -72,7 +72,7 @@ Jog 模擬 GPS 定位・開發測試工具
 **簡短說明**（≤ 80 字元）
 
 ```
-給開發者與 QA 的定位功能測試工具，需啟用開發者選項。
+模擬 GPS 定位：搖桿即時移動、瞬移、自動移動，在座位上測試定位功能
 ```
 
 **完整說明**（≤ 4000 字元）
