@@ -54,6 +54,7 @@ import com.wlworks.jog.state.MockStateHolder
 import com.wlworks.jog.ui.CollapsedPanel
 import com.wlworks.jog.ui.FloatingPanel
 import com.wlworks.jog.ui.PanelActions
+import com.wlworks.jog.ui.PanelTab
 import java.time.Instant
 import kotlin.random.Random
 
@@ -410,6 +411,8 @@ class FloatingWindowService : LifecycleService() {
         overlay.show(onDismissInput = MockStateHolder::releaseInputFocus) {
             val state by MockStateHolder.state.collectAsState()
             var collapsed by remember { mutableStateOf(false) }
+            // 記在收合分支之外，收合再展開後還停在同一頁
+            var tab by remember { mutableStateOf(PanelTab.LOCATION) }
 
             // 這個 effect 必須放在 collapsed 分支**之外**：
             // 收合時面板整棵子樹會被移除，放在裡面的 LaunchedEffect 是被丟棄而不是重啟，
@@ -443,6 +446,7 @@ class FloatingWindowService : LifecycleService() {
             } else {
                 FloatingPanel(
                     state = state,
+                    tab = tab,
                     adLocked = RewardedGate.ENABLED && !state.rewardUnlocked,
                     dragHandle = dragHandle,
                     actions = PanelActions(
@@ -456,6 +460,7 @@ class FloatingWindowService : LifecycleService() {
                         onQueryChange = MockStateHolder::setQuery,
                         onRandomNearby = ::teleportRandomNearby,
                         onSearch = ::search,
+                        onSelectTab = { tab = it },
                         onSpeed = MockStateHolder::setSpeed,
                         onStick = MockStateHolder::setStick,
                         onToggleAuto = ::toggleAutoMove,
@@ -522,7 +527,7 @@ class FloatingWindowService : LifecycleService() {
      * 開／關 Health Connect 同步。開之前依序過三關：裝置支援、廣告關卡、寫入權限
      * （裝置不支援就不必叫人看廣告）；
      * 權限只能從 Activity 申請，所以缺權限時把使用者帶回設定畫面。
-     * 開啟的同時把速度檔切到步行並鎖住（見 MockUiState.healthSync）。
+     * 開啟時若停在單車以上的檔次就切回步行，同步期間只能用慢行／步行／跑步（見 MockUiState.healthSync）。
      */
     private fun toggleHealthSync() {
         if (MockStateHolder.state.value.healthSync) {
@@ -538,7 +543,11 @@ class FloatingWindowService : LifecycleService() {
         lifecycleScope.launch {
             if (health.hasPermissions()) {
                 MockStateHolder.update {
-                    it.copy(healthSync = true, message = null, speedTier = SpeedTier.WALK)
+                    it.copy(
+                        healthSync = true,
+                        message = null,
+                        speedTier = if (HealthTally.allows(it.speedTier)) it.speedTier else SpeedTier.WALK
+                    )
                 }
             } else {
                 MockStateHolder.message(getString(R.string.msg_health_need_permission))

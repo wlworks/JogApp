@@ -23,7 +23,7 @@
     <!-- Floating panel -->
     <string name="panel_query_hint">地名 或 25.033, 121.565</string>
     <string name="panel_searching">搜尋中…</string>
-    <string name="panel_teleport">定位到這裡</string>
+    <string name="panel_teleport">定位</string>
     <string name="panel_no_location">尚未設定位置</string>
     <string name="panel_start">開始模擬</string>
     <string name="panel_stop">停止模擬</string>
@@ -33,7 +33,9 @@
     <string name="cd_close">關閉面板</string>
     <string name="panel_auto_move">自動移動</string>
     <string name="panel_health_sync">Health 同步</string>
-    <string name="panel_health_written">Health 同步中（限步行）· 已寫入 %1$d 步 · %2$s</string>
+    <string name="panel_health_written">Health 同步中（限蝸行／步行／慢跑）· 已寫入 %1$d 步 · %2$s</string>
+    <string name="panel_tab_location">位置</string>
+    <string name="panel_tab_move">移動</string>
     <string name="panel_auto_moving">自動移動中 · 推搖桿可接手方向</string>
 
     <!-- Speed tiers -->

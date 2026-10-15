@@ -1,5 +1,6 @@
 package com.wlworks.jog.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wlworks.jog.R
 import com.wlworks.jog.core.DistanceFormat
+import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.RandomJump
 import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.state.MockUiState
@@ -73,12 +76,22 @@ data class PanelActions(
     val onQueryChange: (String) -> Unit,
     val onRandomNearby: () -> Unit,
     val onSearch: () -> Unit,
+    val onSelectTab: (PanelTab) -> Unit,
     val onSpeed: (SpeedTier) -> Unit,
     val onStick: (Float, Float) -> Unit,
     val onToggleAuto: () -> Unit,
     val onToggleHealth: () -> Unit,
     val onToggleRun: () -> Unit
 )
+
+/**
+ * 展開面板右半邊的分頁。選哪一頁由 Service 記著，收合再展開後還停在同一頁。
+ * entries 依字母排剛好也是畫面上由左到右的順序。
+ */
+enum class PanelTab(@StringRes val labelRes: Int) {
+    LOCATION(R.string.panel_tab_location),
+    MOVE(R.string.panel_tab_move)
+}
 
 /**
  * 收合後的精簡面板：上方一顆狀態圓球（拖曳把手，點一下展開），下方保留搖桿。
@@ -146,7 +159,13 @@ fun CollapsedPanel(
 }
 
 /**
- * 懸浮面板本體：標題列、座標輸入、速度檔次、搖桿與開始／停止。
+ * 懸浮面板本體，橫式兩欄：
+ *  - 左欄固定：標題（拖曳把手）、搖桿、開始／停止 —— 不管在哪一頁都推得到桿、停得下來。
+ *  - 右欄分頁：「位置」放輸入、定位與隨機跳、解析結果；「移動」放自動移動與 Health 同步。
+ *    速度檔（分頁列下方）與目前座標（分頁內容下方）放在分頁外，兩頁共用。
+ *
+ * 直式面板塞滿控件後超過半個螢幕高，會蓋住底下 App 的大半畫面；橫式加分頁後約 372 × 245 dp，
+ * 直拿手機也放得下。
  *
  * [adLocked] 為 true 表示這個 build 有廣告關卡且還沒解鎖：自動移動與 Health 同步的按鈕會帶
  * 「廣告」小標，讓使用者按之前就知道會先看廣告。功能已經開著時不標（關閉不必看廣告）。
@@ -154,11 +173,11 @@ fun CollapsedPanel(
 @Composable
 fun FloatingPanel(
     state: MockUiState,
+    tab: PanelTab,
     actions: PanelActions,
     dragHandle: Modifier,
     adLocked: Boolean = false
 ) {
-    val adBadge = if (adLocked) stringResource(R.string.panel_ad_badge) else null
     val focusManager = LocalFocusManager.current
     val latestActions by rememberUpdatedState(actions)
 
@@ -175,67 +194,203 @@ fun FloatingPanel(
         onDispose { latestActions.onInputFocusChanged(false) }
     }
 
-    Column(
+    // 寬度要寫死，理由同 CollapsedPanel
+    Row(
         modifier = Modifier
-            .width(268.dp)
+            .width(372.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(Panel)
             .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // ---- 標題列（同時是拖曳把手） ----
-        Row(
-            modifier = dragHandle.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        // ---- 左欄：標題、搖桿、開始／停止 ----
+        Column(
+            modifier = Modifier.width(112.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                Modifier
-                    .size(8.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(if (state.running) Accent else Color.White.copy(alpha = 0.3f))
+            Row(
+                modifier = dragHandle
+                    .fillMaxWidth()
+                    .heightIn(min = 28.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier
+                        .size(8.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(if (state.running) Accent else Color.White.copy(alpha = 0.3f))
+                )
+                Text(
+                    text = "  " + stringResource(R.string.app_name),
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
+                )
+            }
+            Joystick(
+                accent = Accent,
+                // 沒按「開始」時推桿不會改變座標，索性置灰並停接觸控。
+                // 自動移動中仍可推：推桿暫時接手方向，放開後從那個方向繼續自動走
+                enabled = state.running,
+                size = 104.dp,
+                onInput = { x, y ->
+                    dismissKeyboard()   // queryFocused 為 false 時是 no-op
+                    actions.onStick(x, y)
+                }
             )
-            Text(
-                text = "  " + stringResource(R.string.app_name),
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
+            PillButton(
+                text = stringResource(
+                    if (state.running) R.string.panel_stop else R.string.panel_start
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                filled = state.running,
+                onClick = {
+                    dismissKeyboard()
+                    actions.onToggleRun()
+                }
             )
-            IconText("—", stringResource(R.string.cd_collapse), actions.onCollapse)
-            IconText("✕", stringResource(R.string.cd_close), actions.onClose)
         }
 
-        // ---- 地點／座標輸入 ----
+        // ---- 右欄：分頁列與分頁內容 ----
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 28.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PanelTab.entries.forEach { entry ->
+                    TabButton(
+                        text = stringResource(entry.labelRes),
+                        selected = entry == tab,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            // 換頁前先收鍵盤：輸入框在「位置」頁，換走之後就不在組合裡了
+                            dismissKeyboard()
+                            actions.onSelectTab(entry)
+                        }
+                    )
+                }
+                IconText("—", stringResource(R.string.cd_collapse), actions.onCollapse)
+                IconText("✕", stringResource(R.string.cd_close), actions.onClose)
+            }
+
+            // ---- 速度檔次 ----
+            // 放在分頁外面，兩頁都看得到：隨機跳在「位置」頁、自動移動在「移動」頁，都跟著檔次走
+            SpeedSelector(
+                selected = state.speedTier,
+                accent = Accent,
+                // Health 同步中只開放用腳移動的檔次（蝸行／步行／慢跑），其他置灰
+                isEnabled = { !state.healthSync || HealthTally.allows(it) },
+                onSelect = {
+                    dismissKeyboard()
+                    actions.onSpeed(it)
+                }
+            )
+
+            when (tab) {
+                PanelTab.LOCATION -> LocationTab(
+                    state = state,
+                    actions = actions,
+                    dismissKeyboard = dismissKeyboard,
+                    onQueryFocusChanged = { focused ->
+                        queryFocused = focused
+                        actions.onInputFocusChanged(focused)
+                    }
+                )
+                PanelTab.MOVE -> MoveTab(
+                    state = state,
+                    actions = actions,
+                    adBadge = if (adLocked) stringResource(R.string.panel_ad_badge) else null,
+                    dismissKeyboard = dismissKeyboard
+                )
+            }
+
+            // ---- 目前座標 ----
+            // 放在分頁外面，兩頁都看得到：在「移動」頁開自動移動時也要能看座標一路在變
+            Text(
+                text = state.current?.let {
+                    // 刻意用 Locale.US：逗號小數點的語系會和座標分隔符撞在一起
+                    String.format(Locale.US, "%.6f, %.6f · %.0f°", it.lat, it.lng, state.bearing)
+                } ?: stringResource(R.string.panel_no_location),
+                color = Color.White.copy(alpha = 0.6f),
+                fontSize = 11.sp
+            )
+
+            state.message?.let {
+                Text(it, color = Color(0xFFFFB4A9), fontSize = 11.sp)
+            }
+        }
+    }
+}
+
+/** 標題列上的純符號按鈕，補上 TalkBack 唸得出來的描述。 */
+@Composable
+private fun IconText(symbol: String, description: String, onClick: () -> Unit) {
+    Text(
+        text = symbol,
+        color = Color.White.copy(alpha = 0.7f),
+        fontSize = 14.sp,
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .semantics { contentDescription = description }
+    )
+}
+
+/** 「位置」分頁：輸入框、定位與隨機跳、解析結果。 */
+@Composable
+private fun LocationTab(
+    state: MockUiState,
+    actions: PanelActions,
+    dismissKeyboard: () -> Unit,
+    onQueryFocusChanged: (Boolean) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         QueryField(
             value = state.query,
+            modifier = Modifier.fillMaxWidth(),
             onValueChange = actions.onQueryChange,
             onSearch = actions.onSearch,
-            onFocusChanged = { focused ->
-                queryFocused = focused
-                actions.onInputFocusChanged(focused)
-            }
+            onFocusChanged = onQueryFocusChanged
         )
 
+        // 定位鈕不和輸入框擠同一列：右欄只有約 226dp，並排的話輸入框剩不到 110dp 的字寬，
+        // 連提示文字都要折三行。改和隨機跳並排，兩個「把位置換掉」的動作放在一起。
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             PillButton(
-                text = stringResource(
-                    if (state.searching) R.string.panel_searching else R.string.panel_teleport
-                ),
+                text = stringResource(R.string.panel_teleport),
+                modifier = Modifier.width(64.dp),
+                busy = state.searching,
+                busyDescription = stringResource(R.string.panel_searching),
                 enabled = !state.searching,
-                modifier = Modifier.weight(1f),
                 onClick = actions.onSearch
             )
-            if (state.searching) {
-                CircularProgressIndicator(
-                    color = Accent,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
+            // ---- 隨機跳到附近 ----
+            // 範圍數字跟著上方的速度檔變，靠這串數字讓人看出距離是由檔次決定的。
+            // 並排後放不下完整句子，和收合面板一樣只印範圍；完整句子給 TalkBack 唸。
+            val randomDescription =
+                stringResource(R.string.panel_random_nearby, randomJumpRange(state.speedTier))
+            RandomNearbyButton(
+                label = randomJumpRange(state.speedTier),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = randomDescription },
+                onClick = {
+                    dismissKeyboard()
+                    actions.onRandomNearby()
+                }
+            )
         }
 
         // ---- 解析結果（不寫回輸入框，只顯示）----
@@ -255,42 +410,18 @@ fun FloatingPanel(
             )
         }
 
-        // ---- 目前座標 ----
-        Text(
-            text = state.current?.let {
-                // 刻意用 Locale.US：逗號小數點的語系會和座標分隔符撞在一起
-                String.format(Locale.US, "%.6f, %.6f · %.0f°", it.lat, it.lng, state.bearing)
-            } ?: stringResource(R.string.panel_no_location),
-            color = Color.White.copy(alpha = 0.6f),
-            fontSize = 11.sp
-        )
+    }
+}
 
-        // ---- 速度檔次 ----
-        SpeedSelector(
-            selected = state.speedTier,
-            accent = Accent,
-            // Health 同步中只留目前這一檔（步行），其他置灰
-            locked = state.healthSync,
-            onSelect = {
-                dismissKeyboard()
-                actions.onSpeed(it)
-            }
-        )
-
-        // ---- 隨機跳到附近 ----
-        // 緊貼在速度檔下方、範圍數字跟著檔次變：這兩件事有關聯要靠位置和數字讓人看出來，
-        // 光一顆 shuffle 圖示放在搜尋列旁邊沒人會知道距離是由檔次決定的。
-        RandomNearbyButton(
-            label = stringResource(R.string.panel_random_nearby, randomJumpRange(state.speedTier)),
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                dismissKeyboard()
-                actions.onRandomNearby()
-            }
-        )
-
-        // ---- 自動移動／Health Connect 同步 ----
-        // 和隨機跳一樣跟著速度檔走，所以也放在速度檔下面
+/** 「移動」分頁：自動移動與 Health 同步、已寫入的量。 */
+@Composable
+private fun MoveTab(
+    state: MockUiState,
+    actions: PanelActions,
+    adBadge: String?,
+    dismissKeyboard: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -329,60 +460,20 @@ fun FloatingPanel(
                 fontSize = 11.sp
             )
         }
-
-        // ---- 搖桿 ----
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Joystick(
-                accent = Accent,
-                // 沒按「開始」時推桿不會改變座標，索性置灰並停接觸控。
-                // 自動移動中仍可推：推桿暫時接手方向，放開後從那個方向繼續自動走
-                enabled = state.running,
-                onInput = { x, y ->
-                    dismissKeyboard()   // queryFocused 為 false 時是 no-op
-                    actions.onStick(x, y)
-                }
-            )
-        }
-
-        PillButton(
-            text = stringResource(
-                if (state.running) R.string.panel_stop else R.string.panel_start
-            ),
-            modifier = Modifier.fillMaxWidth(),
-            filled = state.running,
-            onClick = {
-                dismissKeyboard()
-                actions.onToggleRun()
-            }
-        )
-
-        state.message?.let {
-            Text(it, color = Color(0xFFFFB4A9), fontSize = 11.sp)
-        }
     }
 }
 
-/** 標題列上的純符號按鈕，補上 TalkBack 唸得出來的描述。 */
-@Composable
-private fun IconText(symbol: String, description: String, onClick: () -> Unit) {
-    Text(
-        text = symbol,
-        color = Color.White.copy(alpha = 0.7f),
-        fontSize = 14.sp,
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-            .semantics { contentDescription = description }
-    )
-}
-
-/** 圓角長按鈕，filled 為 true 時用主色實心。[badge] 不是 null 時在文字前面加一個小標（例：「廣告」）。 */
+/**
+ * 圓角長按鈕，filled 為 true 時用主色實心。[badge] 不是 null 時在文字前面加一個小標（例：「廣告」）。
+ * [busy] 為 true 時文字換成轉圈，[busyDescription] 給 TalkBack 唸。
+ */
 @Composable
 private fun PillButton(
     text: String,
     modifier: Modifier = Modifier,
     badge: String? = null,
+    busy: Boolean = false,
+    busyDescription: String? = null,
     enabled: Boolean = true,
     filled: Boolean = false,
     onClick: () -> Unit
@@ -396,6 +487,16 @@ private fun PillButton(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (busy) {
+            CircularProgressIndicator(
+                color = Accent,
+                strokeWidth = 2.dp,
+                modifier = Modifier
+                    .size(16.dp)
+                    .semantics { contentDescription = busyDescription.orEmpty() }
+            )
+            return@Row
+        }
         if (badge != null) {
             Text(
                 text = badge,
@@ -408,14 +509,16 @@ private fun PillButton(
                     .background(AdBadge)
                     .padding(horizontal = 4.dp, vertical = 1.dp)
             )
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(4.dp))
         }
         Text(
             text = text,
-            fontSize = 12.sp,
+            // 右欄兩顆並排各只有約 105dp，小標加「Health 同步」用 12sp 會被截掉，帶小標時縮一級
+            fontSize = if (badge != null) 11.sp else 12.sp,
             fontWeight = FontWeight.Medium,
             color = if (filled) Color.Black else Color.White,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center
         )
     }
@@ -423,25 +526,33 @@ private fun PillButton(
 
 /**
  * 地點／座標輸入框。只在焦點狀態**真的改變**時才回報，避免重複觸發 updateViewLayout。
+ * 換到別的分頁時輸入框會離開組合，那時若還持有焦點就補報一次失焦，視窗才會變回不可聚焦。
  */
 @Composable
 private fun QueryField(
     value: String,
+    modifier: Modifier = Modifier,
     onValueChange: (String) -> Unit,
     onSearch: () -> Unit,
     onFocusChanged: (Boolean) -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
+    val latestFocused by rememberUpdatedState(focused)
+    val latestOnFocusChanged by rememberUpdatedState(onFocusChanged)
+
+    DisposableEffect(Unit) {
+        onDispose { if (latestFocused) latestOnFocusChanged(false) }
+    }
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         // 座標串（例：35.039563227558034, 135.72926455412235）有38個字，
-        // 在 268dp 寬的面板裡單行放不下，允許折到第二行。
+        // 右欄約 226dp 寬，允許折到第三行。
         // imeAction 已明確指定為 Search，多行下依然會走 onSearch，不會變成換行鍵。
-        maxLines = 2,
-        textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
-        placeholder = { Text(stringResource(R.string.panel_query_hint), fontSize = 12.sp) },
+        maxLines = 3,
+        textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
+        placeholder = { Text(stringResource(R.string.panel_query_hint), fontSize = 11.sp) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { onSearch() }),
         colors = OutlinedTextFieldDefaults.colors(
@@ -451,8 +562,7 @@ private fun QueryField(
             unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
             cursorColor = Accent
         ),
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .heightIn(min = 52.dp)
             .onFocusChanged { focusState ->
                 if (focusState.isFocused != focused) {
@@ -496,6 +606,39 @@ private fun RandomNearbyButton(label: String, modifier: Modifier = Modifier, onC
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1
+        )
+    }
+}
+
+/** 分頁列上的一個分頁：選中時文字變亮、底下一條主色底線。 */
+@Composable
+private fun TabButton(
+    text: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .padding(top = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = text,
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.5f),
+            fontSize = 12.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
+        )
+        Spacer(Modifier.height(4.dp))
+        Box(
+            Modifier
+                .fillMaxWidth(0.6f)
+                .height(2.dp)
+                .clip(RoundedCornerShape(1.dp))
+                .background(if (selected) Accent else Color.Transparent)
         )
     }
 }

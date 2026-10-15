@@ -33,7 +33,7 @@ HOW IT WORKS
 • Six speed tiers, from a slow creep to rail speed, for testing movement at realistic rates.
 • Jump to a random nearby spot. The distance follows the speed tier: about 80–250 m when walking, up to 5–15 km at rail speed.
 • Auto move: the simulated position roams on its own at the selected speed tier, turning gradually like a real walk or drive. Push the joystick at any time to steer.
-• Health sync (optional): while the position moves at walking speed, Jog writes the simulated steps and distance to Health Connect once a minute, so you can test apps that read them.
+• Health sync (optional): while the position moves at creep, walk or run speed, Jog writes the simulated steps and distance to Health Connect once a minute, so you can test apps that read them.
 • Auto move and Health sync are unlocked by watching one short rewarded ad, valid until you close the floating panel. Teleport, the joystick, random jump and everything else work without ads.
 • Jog remembers the last simulated position and restores it the next time you open the app.
 • A persistent notification shows while simulation is running so you can stop it at any time.
@@ -86,7 +86,7 @@ Jog 是給 Android 開發者與 QA 測試人員用的模擬定位工具。它把
 • 六個速度檔次，從蝸行到高鐵，以合理的速率測試移動。
 • 隨機跳到附近。距離跟著速度檔走：步行約 80–250 公尺，高鐵可達 5–15 公里。
 • 自動移動：模擬位置依目前的速度檔自行隨機移動，像真的走路或開車一樣逐漸轉彎，隨時可以推搖桿接手方向。
-• Health 同步（選用）：以步行速度移動時，每分鐘把模擬的步數與距離寫入 Health Connect，方便測試會讀取這些資料的 App。
+• Health 同步（選用）：以蝸行、步行或慢跑速度移動時，每分鐘把模擬的步數與距離寫入 Health Connect，方便測試會讀取這些資料的 App。
 • 自動移動與 Health 同步需觀看一則短獎勵廣告解鎖，效期到關閉懸浮面板為止。瞬移、搖桿、隨機跳等其他功能都不需要看廣告。
 • 記住上次的模擬位置，下次開啟時直接接續。
 • 模擬進行中顯示常駐通知，隨時可以停止。

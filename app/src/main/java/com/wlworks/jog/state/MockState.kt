@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.LatLng
 import com.wlworks.jog.core.SpeedTier
 
@@ -33,7 +34,7 @@ data class MockUiState(
     val healthSteps: Long = 0L,
     /**
      * 移動時是否定時把步數／距離寫進 Health Connect。
-     * 開著的期間速度檔鎖在步行 —— 步數是用步行步幅換算的，其他檔次寫進去的數字不合理。
+     * 開著的期間速度檔只能用慢行／步行／跑步 —— 步數依這三檔的步幅換算，單車以上沒有步數可言。
      */
     val healthSync: Boolean = false,
     val message: String? = null,
@@ -73,8 +74,10 @@ object MockStateHolder {
     /** 更新輸入框內容。 */
     fun setQuery(q: String) = update { it.copy(query = q) }
 
-    /** 切換速度檔次。Health 同步開著時檔次鎖在步行，這裡直接不理會（面板上其他檔次也已置灰）。 */
-    fun setSpeed(tier: SpeedTier) = update { if (it.healthSync) it else it.copy(speedTier = tier) }
+    /** 切換速度檔次。Health 同步開著時不理會單車以上的檔次（面板上那幾檔也已置灰）。 */
+    fun setSpeed(tier: SpeedTier) = update {
+        if (it.healthSync && !HealthTally.allows(tier)) it else it.copy(speedTier = tier)
+    }
 
     /** 寫入搖桿向量，由 MovementController 在每個 tick 讀取。 */
     fun setStick(x: Float, y: Float) = update { it.copy(stick = StickInput(x, y)) }

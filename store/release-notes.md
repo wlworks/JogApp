@@ -78,4 +78,17 @@ MAJOR：開始含廣告（Google AdMob），Play Console 的廣告聲明、Adver
 </zh-TW>
 ```
 
+## 3.1.0（versionCode 30100）— 橫式面板、Health 同步開放蝸行與慢跑
+
+```
+<en-US>
+• The floating panel is now a shorter landscape layout: the joystick and Start/Stop stay on the left, a row of speed tier icons sits on the right, and Location and Move tabs below it hold everything else.
+• Health sync now works at creep, walk and run speed, with steps counted from each tier's stride. Bike and faster tiers stay off while it is on.
+</en-US>
+<zh-TW>
+• 懸浮面板改為較矮的橫式版面：搖桿與開始／停止固定在左側，右側上方是一列速度檔圖示，其他功能收進下方的「位置」與「移動」分頁。
+• Health 同步開放蝸行、步行與慢跑，步數依各檔次的步幅換算；同步期間單車以上的檔次維持停用。
+</zh-TW>
+```
+
 之後每次上傳新版：`versionCode` +1，在這裡加一段，只寫這版改了什麼。

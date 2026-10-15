@@ -25,9 +25,9 @@
     <string name="setup_stop">Stop floating panel</string>
 
     <!-- Floating panel -->
-    <string name="panel_query_hint">Place name or 25.033, 121.565</string>
+    <string name="panel_query_hint">Place or 25.033, 121.565</string>
     <string name="panel_searching">Searching…</string>
-    <string name="panel_teleport">Teleport here</string>
+    <string name="panel_teleport">Go</string>
     <string name="panel_no_location">No location set</string>
     <string name="panel_start">Start</string>
     <string name="panel_stop">Stop</string>
@@ -39,7 +39,9 @@
     <string name="panel_auto_move">Auto move</string>
     <string name="panel_health_sync">Health sync</string>
     <!-- %1$d 步數、%2$s 距離（DistanceFormat.single） -->
-    <string name="panel_health_written">Health sync on (Walk only) · %1$d steps · %2$s written</string>
+    <string name="panel_health_written">Health sync on (Creep, Walk, Run) · %1$d steps · %2$s written</string>
+    <string name="panel_tab_location">Location</string>
+    <string name="panel_tab_move">Move</string>
     <string name="panel_auto_moving">Auto-moving · push the stick to steer</string>
 
     <!-- Speed tiers -->

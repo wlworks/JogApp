@@ -79,7 +79,7 @@ class MovementController(
                         distanceM = movedM
                     )
                     // 搖桿和自動移動走的路都算；瞬移不經過這裡所以不算
-                    if (snapshot.healthSync) tally.add(movedM)
+                    if (snapshot.healthSync) tally.add(movedM = movedM, tier = snapshot.speedTier)
                 }
 
                 engine.push(position, lastBearing, speedMps.toFloat())
