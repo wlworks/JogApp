@@ -1,7 +1,8 @@
 # Release notes
 
 Play Console「Release notes」欄位接受多語系標記，整段貼進去即可。每個語系 500 字元上限。
-語系代碼要和商店資訊已加入的語言一致：`en-US`、`zh-TW`。
+語系代碼要和商店資訊已加入的語言一致：`en-US`、`zh-TW`；3.2.0 起再加 `ja-JP`、`ko-KR`、`es-419`、`pt-BR`、`de-DE`
+（2026-10-15 新增的商店語系，文案見 `store/listing-locales.md`，未經母語校對）。
 
 ## 0.1.0（versionCode 1）— 封閉測試第一版
 
@@ -104,6 +105,31 @@ MAJOR：開始含廣告（Google AdMob），Play Console 的廣告聲明、Adver
 • 面板會在上次的位置重新開啟，旋轉螢幕或展開後超出畫面會自動移回。
 • 廣告無法播放時，解鎖畫面會說明原因並顯示錯誤碼，回報問題時附上即可。
 </zh-TW>
+<ja-JP>
+• フローティングパネルはタイトル以外のどこをドラッグしても動かせます。ジョイスティックの操作はこれまでどおりです。
+• パネルは前回の位置で開き、画面の回転や展開で画面外にはみ出した場合は自動で戻ります。
+• 広告を表示できないとき、ロック解除画面に理由と短いエラーコードを表示します。問題を報告する際に添えてください。
+</ja-JP>
+<ko-KR>
+• 플로팅 패널을 제목뿐 아니라 아무 곳이나 드래그해 옮길 수 있습니다. 조이스틱은 이전과 똑같이 작동합니다.
+• 패널이 마지막 위치에서 열리며, 화면을 회전하거나 펼쳐서 화면 밖으로 벗어나면 자동으로 돌아옵니다.
+• 광고를 표시할 수 없을 때 잠금 해제 화면에 이유와 짧은 오류 코드가 표시됩니다. 문제를 신고할 때 함께 알려 주세요.
+</ko-KR>
+<es-419>
+• Arrastra el panel flotante desde cualquier punto, no solo desde el título. El joystick funciona como antes.
+• El panel se vuelve a abrir donde lo dejaste y regresa a la pantalla si queda fuera al girar el dispositivo o expandirlo.
+• Si no se puede mostrar un anuncio, la pantalla de desbloqueo explica el motivo y muestra un código de error corto para incluir al reportar un problema.
+</es-419>
+<pt-BR>
+• Arraste o painel flutuante de qualquer ponto, não só pelo título. O joystick funciona como antes.
+• O painel reabre onde você o deixou e volta para a tela se ficar de fora ao girar o aparelho ou expandi-lo.
+• Se não for possível exibir um anúncio, a tela de desbloqueio explica o motivo e mostra um código de erro curto para incluir ao relatar um problema.
+</pt-BR>
+<de-DE>
+• Das schwebende Bedienfeld lässt sich jetzt an jeder Stelle verschieben, nicht nur am Titel. Der Joystick funktioniert wie bisher.
+• Das Bedienfeld öffnet sich dort, wo du es zuletzt gelassen hast, und kehrt auf den Bildschirm zurück, wenn es nach dem Drehen oder Aufklappen herausragt.
+• Kann keine Anzeige gezeigt werden, nennt der Freischaltbildschirm den Grund und einen kurzen Fehlercode, den du beim Melden eines Problems angeben kannst.
+</de-DE>
 ```
 
 之後每次上傳新版：`versionCode` +1，在這裡加一段，只寫這版改了什麼。
