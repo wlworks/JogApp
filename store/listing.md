@@ -29,7 +29,7 @@ Jog is a mock location tool for Android developers and QA testers. It feeds simu
 
 HOW IT WORKS
 • Enter a place name or latitude/longitude and teleport the simulated position there.
-• A floating panel with a joystick nudges the position in real time while the app under test stays in the foreground. The panel uses a compact landscape layout that covers only a small part of the screen, with the speed tiers always in view. Collapse the panel to a compact bubble and the joystick stays available.
+• A floating panel with a joystick nudges the position in real time while the app under test stays in the foreground. The panel uses a compact landscape layout that covers only a small part of the screen, with the speed tiers always in view. Drag it from anywhere and it reopens where you left it. Collapse the panel to a compact bubble and the joystick stays available.
 • Six speed tiers, from a slow creep to rail speed, for testing movement at realistic rates.
 • Jump to a random nearby spot. The distance follows the speed tier: about 80–250 m when walking, up to 5–15 km at rail speed.
 • Auto move: the simulated position roams on its own at the selected speed tier, turning gradually like a real walk or drive. Push the joystick at any time to steer.
@@ -82,7 +82,7 @@ Jog 是給 Android 開發者與 QA 測試人員用的模擬定位工具。它把
 
 運作方式
 • 輸入地名或經緯度，把模擬位置瞬移到那裡。
-• 懸浮面板上的搖桿可以在受測 App 停留在前景時即時微調位置。面板採橫式精簡版面，只佔螢幕一小塊，速度檔一直顯示在面板上。面板收合成小泡泡後，搖桿依然可以用。
+• 懸浮面板上的搖桿可以在受測 App 停留在前景時即時微調位置。面板採橫式精簡版面，只佔螢幕一小塊，速度檔一直顯示在面板上。任何空白處都能拖曳，下次會在原位置開啟。面板收合成小泡泡後，搖桿依然可以用。
 • 六個速度檔次，從蝸行到高鐵，以合理的速率測試移動。
 • 隨機跳到附近。距離跟著速度檔走：步行約 80–250 公尺，高鐵可達 5–15 公里。
 • 自動移動：模擬位置依目前的速度檔自行隨機移動，像真的走路或開車一樣逐漸轉彎，隨時可以推搖桿接手方向。

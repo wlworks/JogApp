@@ -91,4 +91,19 @@ MAJOR：開始含廣告（Google AdMob），Play Console 的廣告聲明、Adver
 </zh-TW>
 ```
 
+## 3.2.0（versionCode 30200）— 面板任意處拖曳、記住位置、廣告錯誤碼
+
+```
+<en-US>
+• Drag the floating panel from anywhere on it, not just the title. The joystick still steers as before.
+• The panel reopens where you last left it, and moves back on screen after rotating or expanding.
+• If an ad can't be shown, the unlock screen now explains why and shows a short error code to include when reporting a problem.
+</en-US>
+<zh-TW>
+• 懸浮面板任何空白處都能拖曳，不必再對準標題；搖桿照常操作。
+• 面板會在上次的位置重新開啟，旋轉螢幕或展開後超出畫面會自動移回。
+• 廣告無法播放時，解鎖畫面會說明原因並顯示錯誤碼，回報問題時附上即可。
+</zh-TW>
+```
+
 之後每次上傳新版：`versionCode` +1，在這裡加一段，只寫這版改了什麼。
