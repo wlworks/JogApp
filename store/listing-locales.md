@@ -63,7 +63,7 @@ Jog は Android の開発者・QA テスター向けのモック位置情報ツ�
 
 主な機能
 • 地名または緯度・経度を入力して、シミュレーション位置をその場所へ瞬間移動。
-• フローティングパネルのジョイスティックで、テスト対象のアプリを前面に出したまま位置をリアルタイムに微調整。パネルは画面の一部だけを使うコンパクトな横長レイアウトで、速度の段階は常に表示されます。小さなバブルに折りたたんでもジョイスティックはそのまま使えます。
+• フローティングパネルのジョイスティックで、テスト対象のアプリを前面に出したまま位置をリアルタイムに微調整。パネルは画面の一部だけを使うコンパクトな横長レイアウトで、速度の段階は常に表示されます。パネルはどこをドラッグしても動かせ、次回は前回の位置で開きます。小さなバブルに折りたたんでもジョイスティックはそのまま使えます。
 • ゆっくり歩きから鉄道まで 6 段階の速度で、現実的な速さの移動をテスト。
 • 近くのランダムな地点へジャンプ。距離は速度の段階に連動し、徒歩なら約 80〜250 m、鉄道なら 5〜15 km まで。
 • 自動移動：選んだ速度でシミュレーション位置が自ら動き回り、実際の歩行や運転のように少しずつ向きを変えます。ジョイスティックでいつでも方向を変えられます。
@@ -116,7 +116,7 @@ Jog는 Android 개발자와 QA 테스터를 위한 모의 위치 도구입니다
 
 주요 기능
 • 장소 이름이나 위도/경도를 입력해 시뮬레이션 위치를 그곳으로 순간 이동합니다.
-• 테스트 중인 앱을 앞에 띄운 채로 플로팅 패널의 조이스틱으로 위치를 실시간으로 조정합니다. 패널은 화면의 일부만 차지하는 작은 가로형 레이아웃이며 속도 단계가 항상 표시됩니다. 패널을 작은 버블로 접어도 조이스틱은 계속 사용할 수 있습니다.
+• 테스트 중인 앱을 앞에 띄운 채로 플로팅 패널의 조이스틱으로 위치를 실시간으로 조정합니다. 패널은 화면의 일부만 차지하는 작은 가로형 레이아웃이며 속도 단계가 항상 표시됩니다. 패널의 아무 곳이나 드래그해 옮길 수 있고, 다음에는 마지막 위치에서 열립니다. 패널을 작은 버블로 접어도 조이스틱은 계속 사용할 수 있습니다.
 • 아주 느린 걸음부터 철도까지 6단계 속도로 현실적인 속도의 이동을 테스트합니다.
 • 근처의 임의 지점으로 점프합니다. 거리는 속도 단계에 따라 달라져 걷기는 약 80–250m, 철도는 최대 5–15km입니다.
 • 자동 이동: 선택한 속도로 시뮬레이션 위치가 스스로 돌아다니며 실제 걷기나 운전처럼 조금씩 방향을 바꿉니다. 언제든 조이스틱으로 방향을 바꿀 수 있습니다.
@@ -169,7 +169,7 @@ Jog es una herramienta de ubicación simulada para desarrolladores y testers de 
 
 CÓMO FUNCIONA
 • Escribe un lugar o una latitud y longitud y teletransporta allí la posición simulada.
-• Un panel flotante con joystick mueve la posición en tiempo real mientras la app que pruebas sigue en primer plano. El panel tiene un diseño horizontal compacto que ocupa solo una pequeña parte de la pantalla, con los niveles de velocidad siempre a la vista. Contrae el panel en una burbuja y el joystick sigue disponible.
+• Un panel flotante con joystick mueve la posición en tiempo real mientras la app que pruebas sigue en primer plano. El panel tiene un diseño horizontal compacto que ocupa solo una pequeña parte de la pantalla, con los niveles de velocidad siempre a la vista. Arrástralo desde cualquier punto y se volverá a abrir donde lo dejaste. Contrae el panel en una burbuja y el joystick sigue disponible.
 • Seis niveles de velocidad, desde un paso muy lento hasta velocidad de tren, para probar el movimiento a ritmos realistas.
 • Salta a un punto cercano al azar. La distancia depende del nivel de velocidad: unos 80–250 m al caminar y hasta 5–15 km a velocidad de tren.
 • Movimiento automático: la posición simulada se desplaza sola al nivel de velocidad elegido y gira poco a poco como en una caminata o un trayecto en auto reales. Usa el joystick en cualquier momento para cambiar de dirección.
@@ -222,7 +222,7 @@ Jog é uma ferramenta de localização simulada para desenvolvedores e testadore
 
 COMO FUNCIONA
 • Digite o nome de um lugar ou uma latitude e longitude e teletransporte a posição simulada para lá.
-• Um painel flutuante com joystick move a posição em tempo real enquanto o app em teste continua em primeiro plano. O painel tem um layout horizontal compacto que ocupa só uma pequena parte da tela, com os níveis de velocidade sempre à vista. Recolha o painel em uma bolha e o joystick continua disponível.
+• Um painel flutuante com joystick move a posição em tempo real enquanto o app em teste continua em primeiro plano. O painel tem um layout horizontal compacto que ocupa só uma pequena parte da tela, com os níveis de velocidade sempre à vista. Arraste-o de qualquer ponto e ele reabre onde você o deixou. Recolha o painel em uma bolha e o joystick continua disponível.
 • Seis níveis de velocidade, de um passo bem lento até velocidade de trem, para testar o movimento em ritmos realistas.
 • Pule para um ponto próximo aleatório. A distância acompanha o nível de velocidade: cerca de 80–250 m caminhando e até 5–15 km na velocidade de trem.
 • Movimento automático: a posição simulada se desloca sozinha no nível de velocidade escolhido, virando aos poucos como em uma caminhada ou viagem de carro reais. Use o joystick a qualquer momento para mudar a direção.
@@ -275,7 +275,7 @@ Jog ist ein Tool für simulierte Standorte für Android-Entwickler und QA-Tester
 
 SO FUNKTIONIERT ES
 • Gib einen Ortsnamen oder Breiten- und Längengrad ein und teleportiere die simulierte Position dorthin.
-• Ein schwebendes Bedienfeld mit Joystick verschiebt die Position in Echtzeit, während die getestete App im Vordergrund bleibt. Das Bedienfeld nutzt ein kompaktes Querformat, belegt nur einen kleinen Teil des Bildschirms und zeigt die Geschwindigkeitsstufen immer an. Klappst du es zu einer kleinen Blase zusammen, bleibt der Joystick verfügbar.
+• Ein schwebendes Bedienfeld mit Joystick verschiebt die Position in Echtzeit, während die getestete App im Vordergrund bleibt. Das Bedienfeld nutzt ein kompaktes Querformat, belegt nur einen kleinen Teil des Bildschirms und zeigt die Geschwindigkeitsstufen immer an. Du kannst es an jeder freien Stelle verschieben, und es öffnet sich beim nächsten Mal wieder dort. Klappst du es zu einer kleinen Blase zusammen, bleibt der Joystick verfügbar.
 • Sechs Geschwindigkeitsstufen, vom langsamen Schleichen bis zur Bahngeschwindigkeit, um Bewegung in realistischem Tempo zu testen.
 • Springe zu einem zufälligen Ort in der Nähe. Die Entfernung hängt von der Geschwindigkeitsstufe ab: etwa 80–250 m beim Gehen, bis zu 5–15 km bei Bahngeschwindigkeit.
 • Auto-Bewegung: Die simulierte Position bewegt sich mit der gewählten Stufe von selbst und ändert die Richtung allmählich wie bei einem echten Spaziergang oder einer Autofahrt. Mit dem Joystick kannst du jederzeit lenken.
