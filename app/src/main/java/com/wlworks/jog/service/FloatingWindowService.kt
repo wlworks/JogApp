@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -48,6 +49,7 @@ import com.wlworks.jog.core.SpeedTier
 import com.wlworks.jog.data.GeocodeRepository
 import com.wlworks.jog.data.HealthConnectStore
 import com.wlworks.jog.data.LastLocationStore
+import com.wlworks.jog.data.PanelPositionStore
 import com.wlworks.jog.mock.MockLocationEngine
 import com.wlworks.jog.mock.MovementController
 import com.wlworks.jog.state.MockStateHolder
@@ -119,6 +121,7 @@ class FloatingWindowService : LifecycleService() {
     private lateinit var lastLocation: LastLocationStore
     private lateinit var movement: MovementController
     private lateinit var overlay: OverlayHost
+    private lateinit var panelPosition: PanelPositionStore
     private val tally = HealthTally()
 
     /** 以 [point] 為起點開始注入，並處理未被選為 mock app 等失敗情形。 */
@@ -292,6 +295,12 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
+    /** 螢幕旋轉後可用範圍變了，面板尺寸卻沒變（不會觸發 OverlayHost 的 layout 檢查），這裡補一次。 */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (::overlay.isInitialized) overlay.keepOnScreen()
+    }
+
     /** 建好相依元件、確認權限、進入前景並掛上懸浮視窗。 */
     override fun onCreate() {
         super.onCreate()
@@ -301,6 +310,8 @@ class FloatingWindowService : LifecycleService() {
         health = HealthConnectStore(this)
         lastLocation = LastLocationStore(this)
         overlay = OverlayHost(this)
+        panelPosition = PanelPositionStore(this)
+        panelPosition.load()?.let(overlay::moveTo)
 
         // 權限在這裡再確認一次：使用者可能事後撤銷，而 START_STICKY 會把我們重新拉起來。
         // Android 14+ 沒有定位權限就 startForeground(TYPE_LOCATION) 會直接 SecurityException。
@@ -427,7 +438,11 @@ class FloatingWindowService : LifecycleService() {
             }
 
             val dragArea = Modifier.pointerInput(Unit) {
-                detectDragGestures { change, delta ->
+                // 放開才存位置，拖曳途中不寫
+                detectDragGestures(
+                    onDragEnd = { panelPosition.save(overlay.position) },
+                    onDragCancel = { panelPosition.save(overlay.position) }
+                ) { change, delta ->
                     change.consume()
                     overlay.moveBy(delta.x, delta.y)
                 }

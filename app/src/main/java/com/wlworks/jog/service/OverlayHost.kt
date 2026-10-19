@@ -2,11 +2,13 @@ package com.wlworks.jog.service
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Point
 import android.os.Build
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.window.OnBackInvokedCallback
@@ -88,6 +90,9 @@ class OverlayHost(
 
     private var onDismissInput: () -> Unit = {}
 
+    /** 面板左上角目前的 WindowManager 座標（px）。拖曳結束時拿來存檔。 */
+    val position: Point get() = Point(layoutParams.x, layoutParams.y)
+
     private var rootView: FrameLayout? = null
 
     private val savedStateController = SavedStateRegistryController.create(this).apply {
@@ -119,12 +124,40 @@ class OverlayHost(
         if (layoutParams.flags == BASE_FLAGS_FOCUSABLE) onDismissInput()
     }
 
+    /**
+     * 面板有任何一部分跑出畫面就整個拉回來。在面板尺寸改變（第一次顯示、展開／收合）與
+     * 螢幕旋轉後呼叫 —— 存下來的位置是在別的方向或收合狀態下拖的，換個尺寸就可能超出邊界。
+     * 拖曳途中不夾，使用者要把面板推到一半在外面也可以；下次尺寸改變時才會拉回。
+     */
+    fun keepOnScreen() {
+        val view = rootView ?: return
+        if (!view.isAttachedToWindow || view.width == 0) return
+        val screen = screenSize()
+        val x = layoutParams.x.coerceIn(0, maxOf(0, screen.x - view.width))
+        val y = layoutParams.y.coerceIn(0, maxOf(0, screen.y - view.height))
+        if (x == layoutParams.x && y == layoutParams.y) return
+        layoutParams.x = x
+        layoutParams.y = y
+        runCatching { windowManager.updateViewLayout(view, layoutParams) }
+    }
+
     /** 拖曳時呼叫，直接改 WindowManager 座標。 */
     fun moveBy(dx: Float, dy: Float) {
         val view = rootView ?: return
         layoutParams.x += dx.toInt()
         layoutParams.y += dy.toInt()
         windowManager.updateViewLayout(view, layoutParams)
+    }
+
+    /**
+     * 設定面板左上角位置。在 [show] 之前呼叫用來還原上次的位置；
+     * 超出畫面的部分等掛上去量到尺寸後由 [keepOnScreen] 處理。
+     */
+    fun moveTo(position: Point) {
+        layoutParams.x = position.x
+        layoutParams.y = position.y
+        val view = rootView ?: return
+        if (view.isAttachedToWindow) runCatching { windowManager.updateViewLayout(view, layoutParams) }
     }
 
     /** 依 API 等級挑可用的 overlay 視窗類型。 */
@@ -135,6 +168,25 @@ class OverlayHost(
             @Suppress("DEPRECATION")
             WindowManager.LayoutParams.TYPE_PHONE
         }
+
+    /**
+     * overlay 視窗可以擺的範圍（px）。實測 y = 0 在狀態列下緣而不是螢幕頂端，
+     * 所以要扣掉系統列與瀏海；API 29 以下拿不到 insets，用 displayMetrics 近似（不扣狀態列，底部會寬鬆一點）。
+     */
+    private fun screenSize(): Point {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            val metrics = context.resources.displayMetrics
+            return Point(metrics.widthPixels, metrics.heightPixels)
+        }
+        val metrics = windowManager.currentWindowMetrics
+        val insets = metrics.windowInsets.getInsetsIgnoringVisibility(
+            WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+        )
+        return Point(
+            metrics.bounds.width() - insets.left - insets.right,
+            metrics.bounds.height() - insets.top - insets.bottom
+        )
+    }
 
     /**
      * 輸入框要打字時，必須把 FLAG_NOT_FOCUSABLE 拿掉，鍵盤才會出現；
@@ -200,6 +252,12 @@ class OverlayHost(
         root.setViewTreeViewModelStoreOwner(this)
         root.setViewTreeSavedStateRegistryOwner(this)
         root.addView(ComposeView(context).apply { setContent(content) })
+        // 尺寸一變（第一次量到、展開／收合）就檢查有沒有超出畫面。post 出去，不在 layout 途中改視窗。
+        root.addOnLayoutChangeListener { view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                view.post { keepOnScreen() }
+            }
+        }
         rootView = root
         windowManager.addView(root, layoutParams)
         lifecycleRegistry.currentState = Lifecycle.State.RESUMED
