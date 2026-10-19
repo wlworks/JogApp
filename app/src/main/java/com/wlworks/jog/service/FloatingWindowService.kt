@@ -426,7 +426,7 @@ class FloatingWindowService : LifecycleService() {
                 }
             }
 
-            val dragHandle = Modifier.pointerInput(Unit) {
+            val dragArea = Modifier.pointerInput(Unit) {
                 detectDragGestures { change, delta ->
                     change.consume()
                     overlay.moveBy(delta.x, delta.y)
@@ -438,7 +438,7 @@ class FloatingWindowService : LifecycleService() {
                     autoMove = state.autoMove,
                     running = state.running,
                     speedTier = state.speedTier,
-                    dragHandle = dragHandle,
+                    dragArea = dragArea,
                     onExpand = { collapsed = false },
                     onRandomNearby = ::teleportRandomNearby,
                     onStick = MockStateHolder::setStick
@@ -448,7 +448,7 @@ class FloatingWindowService : LifecycleService() {
                     state = state,
                     tab = tab,
                     adLocked = RewardedGate.ENABLED && !state.rewardUnlocked,
-                    dragHandle = dragHandle,
+                    dragArea = dragArea,
                     actions = PanelActions(
                         onClose = { stopSelf() },
                         onCollapse = {

@@ -94,7 +94,8 @@ enum class PanelTab(@StringRes val labelRes: Int) {
 }
 
 /**
- * 收合後的精簡面板：上方一顆狀態圓球（拖曳把手，點一下展開），下方保留搖桿。
+ * 收合後的精簡面板：上方一顆狀態圓球（點一下展開），下方保留搖桿。
+ * [dragArea] 套在整個面板上：搖桿以外的地方都能拖，理由同 [FloatingPanel]。
  * 封測回饋：收合後還是要能微調位置，不然每次推桿都得先展開、再收回去。
  * 自動移動中圓球外面多一圈，收合時也看得出來它自己在走。
  */
@@ -103,14 +104,14 @@ fun CollapsedPanel(
     autoMove: Boolean,
     running: Boolean,
     speedTier: SpeedTier,
-    dragHandle: Modifier,
+    dragArea: Modifier,
     onExpand: () -> Unit,
     onRandomNearby: () -> Unit,
     onStick: (Float, Float) -> Unit
 ) {
     // 寬度要寫死：overlay 視窗是 WRAP_CONTENT，裡面的 fillMaxWidth 會撐到整個螢幕寬
     Column(
-        modifier = Modifier
+        modifier = dragArea
             .width(112.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(Panel)
@@ -120,7 +121,7 @@ fun CollapsedPanel(
     ) {
         val expandDescription = stringResource(R.string.cd_expand)
         Box(
-            modifier = dragHandle
+            modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 36.dp)
                 .clip(RoundedCornerShape(12.dp))
@@ -160,7 +161,7 @@ fun CollapsedPanel(
 
 /**
  * 懸浮面板本體，橫式兩欄：
- *  - 左欄固定：標題（拖曳把手）、搖桿、開始／停止 —— 不管在哪一頁都推得到桿、停得下來。
+ *  - 左欄固定：標題、搖桿、開始／停止 —— 不管在哪一頁都推得到桿、停得下來。
  *  - 右欄分頁：「位置」放輸入、定位與隨機跳、解析結果；「移動」放自動移動與 Health 同步。
  *    速度檔（分頁列下方）與目前座標（分頁內容下方）放在分頁外，兩頁共用。
  *
@@ -169,13 +170,17 @@ fun CollapsedPanel(
  *
  * [adLocked] 為 true 表示這個 build 有廣告關卡且還沒解鎖：自動移動與 Health 同步的按鈕會帶
  * 「廣告」小標，讓使用者按之前就知道會先看廣告。功能已經開著時不標（關閉不必看廣告）。
+ *
+ * [dragArea] 套在最外層，而且要排在 padding 之前，邊框留白也算在可拖範圍內。以前只有標題列能拖，
+ * 使用者常抓不到。子元件先拿到事件：搖桿自己吃掉拖曳，推桿不會拖到面板；
+ * 從按鈕上按住拖動則會拖面板並取消那次點擊，輕點不受影響。
  */
 @Composable
 fun FloatingPanel(
     state: MockUiState,
     tab: PanelTab,
     actions: PanelActions,
-    dragHandle: Modifier,
+    dragArea: Modifier,
     adLocked: Boolean = false
 ) {
     val focusManager = LocalFocusManager.current
@@ -196,7 +201,7 @@ fun FloatingPanel(
 
     // 寬度要寫死，理由同 CollapsedPanel
     Row(
-        modifier = Modifier
+        modifier = dragArea
             .width(372.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(Panel)
@@ -210,7 +215,7 @@ fun FloatingPanel(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = dragHandle
+                modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 28.dp),
                 verticalAlignment = Alignment.CenterVertically
