@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
@@ -19,8 +20,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.wlworks.jog.R
 import com.wlworks.jog.service.FloatingWindowService
 
@@ -55,6 +58,9 @@ class UnlockActivity : ComponentActivity() {
     /** 畫面目前在哪一步。 */
     private enum class Stage { LOADING, NO_CONSENT, NOT_FINISHED, PROMPT, SHOWING, UNAVAILABLE }
 
+    /** 最近一次載不到廣告的原因；只在 [Stage.UNAVAILABLE] 時顯示。 */
+    private var failure by mutableStateOf<RewardOutcome.Unavailable?>(null)
+
     private var stage by mutableStateOf(Stage.PROMPT)
 
     /** 顯示事前說明；按下同意才開始載入廣告。 */
@@ -80,7 +86,17 @@ class UnlockActivity : ComponentActivity() {
                             Stage.NO_CONSENT -> Text(stringResource(R.string.unlock_no_consent))
                             Stage.NOT_FINISHED -> Text(stringResource(R.string.unlock_not_finished))
                             Stage.PROMPT -> Text(stringResource(R.string.unlock_body))
-                            Stage.UNAVAILABLE -> Text(stringResource(R.string.unlock_unavailable))
+                            Stage.UNAVAILABLE -> failure?.let { cause ->
+                                // 代碼用小字放在說明下面：使用者看說明就懂，回報時截圖也帶得到代碼
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(stringResource(cause.messageRes))
+                                    Text(
+                                        text = stringResource(R.string.unlock_error_code, cause.code),
+                                        color = Color.Gray,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
                         }
                     },
                     confirmButton = {
@@ -109,7 +125,7 @@ class UnlockActivity : ComponentActivity() {
     private fun onOutcome(outcome: RewardOutcome) {
         if (isFinishing || isDestroyed) return
         when (outcome) {
-            RewardOutcome.EARNED -> {
+            RewardOutcome.Earned -> {
                 // Service 還活著（面板就是它開的），startService 只會走到 onStartCommand
                 startService(
                     Intent(this, FloatingWindowService::class.java)
@@ -121,9 +137,12 @@ class UnlockActivity : ComponentActivity() {
                 )
                 finish()
             }
-            RewardOutcome.DISMISSED -> stage = Stage.NOT_FINISHED
-            RewardOutcome.NO_CONSENT -> stage = Stage.NO_CONSENT
-            RewardOutcome.UNAVAILABLE -> stage = Stage.UNAVAILABLE
+            RewardOutcome.Dismissed -> stage = Stage.NOT_FINISHED
+            RewardOutcome.NoConsent -> stage = Stage.NO_CONSENT
+            is RewardOutcome.Unavailable -> {
+                failure = outcome
+                stage = Stage.UNAVAILABLE
+            }
         }
     }
 

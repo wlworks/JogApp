@@ -20,7 +20,7 @@ object RewardedGate {
 
     /** 沒有關卡可過，直接回報已解鎖。正常流程不會呼叫到這裡。 */
     fun show(activity: Activity, onShowing: () -> Unit, onResult: (RewardOutcome) -> Unit) {
-        onResult(RewardOutcome.EARNED)
+        onResult(RewardOutcome.Earned)
     }
 
     /** 沒有隱私選項可顯示。正常流程不會呼叫到這裡。 */

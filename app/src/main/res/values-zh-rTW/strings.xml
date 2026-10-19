@@ -76,7 +76,12 @@
     <string name="unlock_body">看一則短廣告，就能使用自動移動與 Health 同步，直到你關閉懸浮面板為止。</string>
     <string name="unlock_watch">看廣告</string>
     <string name="unlock_loading">廣告載入中…</string>
-    <string name="unlock_unavailable">廣告載入失敗，請確認網路連線後再試一次。</string>
+    <string name="unlock_unavailable_consent">無法取得廣告隱私設定，請確認網路後再試一次。</string>
+    <string name="unlock_unavailable_network">網路連線有問題，請確認網路後再試一次。</string>
+    <string name="unlock_unavailable_no_fill">目前沒有可播放的廣告，請稍後再試。</string>
+    <string name="unlock_unavailable_service">廣告服務暫時無法使用，請稍後再試。</string>
+    <string name="unlock_unavailable_show">廣告載入了但無法播放，請再試一次。</string>
+    <string name="unlock_error_code">錯誤碼 %1$s</string>
     <string name="unlock_not_finished">廣告還沒播完就被關掉了，所以沒有解鎖。</string>
     <string name="unlock_retry">再試一次</string>
     <string name="unlock_no_consent">在廣告隱私表單做出選擇之前無法顯示廣告。按「再試一次」重新開啟表單。</string>

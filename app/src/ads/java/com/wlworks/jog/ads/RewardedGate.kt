@@ -78,9 +78,11 @@ object RewardedGate {
             AdRequest.Builder().build(),
             object : RewardedAdLoadCallback() {
 
-                /** 沒網路或沒有庫存。 */
+                /** 沒網路或沒有庫存。錯誤碼帶回去給解鎖畫面顯示。 */
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    onResult(RewardOutcome.UNAVAILABLE)
+                    onResult(
+                        RewardOutcome.Unavailable(errorCode = error.code, source = RewardOutcome.Source.LOAD)
+                    )
                 }
 
                 /** 載到了就立刻播；獎勵回呼先於關閉回呼，所以用旗標記到關閉時再回報。 */
@@ -91,12 +93,14 @@ object RewardedGate {
 
                         /** 使用者關掉廣告：看完與否由 earned 決定。 */
                         override fun onAdDismissedFullScreenContent() {
-                            onResult(if (earned) RewardOutcome.EARNED else RewardOutcome.DISMISSED)
+                            onResult(if (earned) RewardOutcome.Earned else RewardOutcome.Dismissed)
                         }
 
                         /** 載到了卻播不出來，視同拿不到廣告。 */
                         override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                            onResult(RewardOutcome.UNAVAILABLE)
+                            onResult(
+                                RewardOutcome.Unavailable(errorCode = error.code, source = RewardOutcome.Source.SHOW)
+                            )
                         }
                     }
                     onShowing()
@@ -118,21 +122,33 @@ object RewardedGate {
             {
                 if (!activity.isFinishing && !activity.isDestroyed) {
                     // 需要同意且還沒問過才會跳表單；不需要或已經問過就直接回呼
-                    UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) {
+                    UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { formError ->
                         when {
                             activity.isFinishing || activity.isDestroyed -> Unit
                             info.canRequestAds() -> loadAndShow(activity, onShowing, onResult)
-                            else -> onResult(RewardOutcome.NO_CONSENT)
+                            // 表單本身載不出來，和使用者沒做選擇是兩回事
+                            formError != null -> onResult(
+                                RewardOutcome.Unavailable(
+                                    errorCode = formError.errorCode,
+                                    source = RewardOutcome.Source.CONSENT
+                                )
+                            )
+                            else -> onResult(RewardOutcome.NoConsent)
                         }
                     }
                 }
             },
-            {
+            { formError ->
                 // 查不到同意狀態（多半是沒網路）：先前已取得結果就照樣載入，否則視同拿不到廣告
                 if (info.canRequestAds()) {
                     loadAndShow(activity, onShowing, onResult)
                 } else {
-                    onResult(RewardOutcome.UNAVAILABLE)
+                    onResult(
+                        RewardOutcome.Unavailable(
+                            errorCode = formError.errorCode,
+                            source = RewardOutcome.Source.CONSENT
+                        )
+                    )
                 }
             }
         )
