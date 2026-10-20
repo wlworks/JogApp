@@ -5,7 +5,7 @@ title: Jog Privacy Policy
 
 # Jog Privacy Policy
 
-**Effective date: 2026-10-19**
+**Effective date: 2026-10-20**
 
 Jog ("the app") is a mock location tool for development and QA testing, published by WLWorks. This policy explains what the app does with data. The short version: **Jog itself does not collect, store or transmit your personal data. The app shows ads through Google AdMob, and AdMob collects some device data to do so, as described below.**
 
@@ -69,7 +69,7 @@ Questions about this policy can be sent to WLWorks at <willy78831@gmail.com>, or
 
 # Jog 隱私權政策
 
-**生效日期：2026-10-19**
+**生效日期：2026-10-20**
 
 Jog（以下稱「本 App」）是 WLWorks 發行的開發與 QA 測試用模擬定位工具。本政策說明本 App 如何處理資料。一句話版本：**Jog 本身不蒐集、不儲存、不傳輸你的個人資料。App 透過 Google AdMob 顯示廣告，AdMob 為此會蒐集部分裝置資料，詳見下文。**
 
