@@ -88,6 +88,8 @@ data class PanelActions(
      * 來間接觸發，避免旗標與 Compose 焦點狀態各走各的而失去同步。
      */
     val onInputFocusChanged: (Boolean) -> Unit,
+    /** 還沒被選為模擬位置 App 時，訊息底下那顆「設定說明」：回設定畫面跳出引導。 */
+    val onOpenMockGuide: () -> Unit,
     val onQueryChange: (String) -> Unit,
     val onRandomNearby: () -> Unit,
     val onSearch: () -> Unit,
@@ -381,6 +383,22 @@ fun FloatingPanel(
 
             state.message?.let {
                 Text(it, color = Color(0xFFFFB4A9), fontSize = 11.sp)
+            }
+            // 開始模擬時才知道沒被選為 mock app；文字說不清楚步驟，直接給一個回設定畫面看引導的入口
+            if (state.needsMockAppSetup) {
+                Text(
+                    text = stringResource(R.string.panel_mock_guide),
+                    color = Accent,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            dismissKeyboard()
+                            actions.onOpenMockGuide()
+                        }
+                        .padding(vertical = 2.dp)
+                )
             }
         }
     }

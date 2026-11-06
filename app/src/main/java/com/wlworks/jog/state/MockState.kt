@@ -41,6 +41,8 @@ data class MockUiState(
      */
     val healthSync: Boolean = false,
     val message: String? = null,
+    /** 設定畫面的模擬位置引導對話框正開著（MainActivity 維護）。這段期間懸浮面板要讓開。 */
+    val mockGuideShowing: Boolean = false,
     val needsMockAppSetup: Boolean = false,
     val query: String = "",
     /** 最近一次成功解析到的地址，只給面板顯示；null 表示還沒搜過或是從上次座標還原。 */

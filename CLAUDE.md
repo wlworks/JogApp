@@ -104,8 +104,10 @@ adb shell pm grant com.wlworks.jog.debug android.permission.health.WRITE_DISTANC
 
 用 adb 給 appop 不會動到封測版的設定（實測兩個套件可以同時是 allow）；開發者選項的選單才是單選。
 
-設定畫面第四列（開發者選項）永遠顯示箭頭而非打勾，那是 `granted = null` 的
-刻意設計 —— App 偵測不到那個選擇，不是 bug。
+設定畫面第四列（模擬位置 App）讀的是本 App 自己的 `mock_location` appop，所以用 adb
+`appops set ... allow` 給的也會讓它打勾，和在開發者選項裡選起來看不出差別。要測引導對話框的「還沒選」狀態，
+先 `appops set com.wlworks.jog.debug android:mock_location default`。「開發者選項還沒開」那一步沒辦法在
+實機上測 —— 關掉開發者選項會連 USB 偵錯一起關，adb 就斷了。
 
 驗證注入是否生效看 `adb shell dumpsys location`，`network` / `fused` / `gps`
 三個 provider 都該標上 `[mock]`。

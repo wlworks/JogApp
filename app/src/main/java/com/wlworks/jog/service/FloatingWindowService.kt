@@ -1,5 +1,6 @@
 package com.wlworks.jog.service
 
+import android.app.AppOpsManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -123,6 +124,18 @@ class FloatingWindowService : LifecycleService() {
     /** 下一批 Health Connect 紀錄的起始時間；每次 flush 後往前推，紀錄之間不重疊。 */
     private var healthWindowStart: Instant = Instant.now()
     private lateinit var lastLocation: LastLocationStore
+
+    /**
+     * 盯著本 App 的 mock_location appop。使用者照提示去開發者選項選好 Jog、回到面板時，
+     * 「請先選為模擬位置 App」的提示要立刻消失 —— 否則它會一直掛到下次按開始成功為止，
+     * 看起來像設定沒生效。回呼可能在 binder 執行緒上，MockStateHolder.update 本身是 CAS，不必切執行緒。
+     */
+    private val mockAppWatcher = AppOpsManager.OnOpChangedListener { _, pkg ->
+        if (pkg != packageName || !engine.isMockLocationApp()) return@OnOpChangedListener
+        MockStateHolder.update {
+            if (it.needsMockAppSetup) it.copy(message = null, needsMockAppSetup = false) else it
+        }
+    }
     private lateinit var movement: MovementController
 
     /**
@@ -254,6 +267,20 @@ class FloatingWindowService : LifecycleService() {
     }
 
     /**
+     * 有畫面需要整個露出來時把懸浮面板藏起來，結束後放回來：
+     *  - 解鎖畫面（廣告）在前景：面板不可以蓋在廣告上。
+     *  - 設定畫面的模擬位置引導對話框開著：連收合後的小面板都會擋到對話框的字。
+     */
+    private fun observeCoveringScreens() {
+        lifecycleScope.launch {
+            MockStateHolder.state
+                .map { it.rewardUnlocking || it.mockGuideShowing }
+                .distinctUntilChanged()
+                .collect { covered -> overlay.setVisible(!covered) }
+        }
+    }
+
+    /**
      * Health Connect 同步開著的期間，每 HEALTH_FLUSH_MS 寫一次。
      * 關掉時 collectLatest 會取消迴圈；最後一段由關閉的那一方（toggleHealthSync / onDestroy）補寫。
      */
@@ -304,16 +331,6 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
-    /** 解鎖畫面（廣告）在前景時把懸浮面板藏起來，離開後放回來。面板不可以蓋在廣告上。 */
-    private fun observeUnlockScreen() {
-        lifecycleScope.launch {
-            MockStateHolder.state
-                .map { it.rewardUnlocking }
-                .distinctUntilChanged()
-                .collect { unlocking -> overlay.setVisible(!unlocking) }
-        }
-    }
-
     /** 螢幕旋轉後可用範圍變了，面板尺寸卻沒變（不會觸發 OverlayHost 的 layout 檢查），這裡補一次。 */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -324,6 +341,10 @@ class FloatingWindowService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         engine = MockLocationEngine(this)
+        runCatching {
+            getSystemService(AppOpsManager::class.java)
+                .startWatchingMode(AppOpsManager.OPSTR_MOCK_LOCATION, packageName, mockAppWatcher)
+        }
         favorites = FavoritesStore(this)
         MockStateHolder.update { it.copy(favorites = favorites.load()) }
         movement = MovementController(engine = engine, scope = lifecycleScope, tally = tally)
@@ -362,7 +383,7 @@ class FloatingWindowService : LifecycleService() {
         observeStateForPersistence()
         showOverlay()
         // 要排在 showOverlay 之後：overlay 還沒掛上去時 setVisible 沒有對象
-        observeUnlockScreen()
+        observeCoveringScreens()
     }
 
     /**
@@ -371,6 +392,7 @@ class FloatingWindowService : LifecycleService() {
      * 廣告解鎖都要清掉，下次開面板從頭來（速度檔的鎖也跟著解開）。
      */
     override fun onDestroy() {
+        runCatching { getSystemService(AppOpsManager::class.java).stopWatchingMode(mockAppWatcher) }
         movement.stop()
         engine.stop()
         overlay.dismiss()
@@ -503,6 +525,12 @@ class FloatingWindowService : LifecycleService() {
                         onDeleteFavorite = ::removeFavorite,
                         onGoToFavorite = ::goToFavorite,
                         onInputFocusChanged = overlay::setInputFocusable,
+                        onOpenMockGuide = {
+                            // 收合：展開的面板會蓋住設定畫面上的引導對話框
+                            MockStateHolder.releaseInputFocus()
+                            collapsed = true
+                            startActivity(MainActivity.mockGuideIntent(this@FloatingWindowService))
+                        },
                         onQueryChange = MockStateHolder::setQuery,
                         onRandomNearby = ::teleportRandomNearby,
                         onSearch = ::search,

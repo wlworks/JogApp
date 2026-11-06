@@ -1,12 +1,14 @@
 package com.wlworks.jog
 
 import android.Manifest
+import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -49,6 +52,7 @@ import kotlinx.coroutines.launch
 import com.wlworks.jog.ads.RewardedGate
 import com.wlworks.jog.data.HealthConnectStore
 import com.wlworks.jog.service.FloatingWindowService
+import com.wlworks.jog.state.MockStateHolder
 
 /**
  * 只負責權限引導 —— 真正的操作全在懸浮視窗裡。
@@ -57,7 +61,10 @@ import com.wlworks.jog.service.FloatingWindowService
  *  1. 懸浮視窗權限（SYSTEM_ALERT_WINDOW，需跳系統設定）
  *  2. 定位權限（runtime）—— 系統對話框之前先跳一段事前說明，交代用途
  *  3. 通知權限（Android 13+，前景服務通知要顯示）
- *  4. 開發者選項裡把本 App 選為「模擬位置資訊應用程式」（無法用程式代勞，只能引導）
+ *  4. 開發者選項裡把本 App 選為「模擬位置資訊應用程式」（無法用程式代勞，只能引導）。
+ *     選了沒有讀得到（mock_location appop），開發者選項開了沒有也讀得到，所以這列會打勾，
+ *     點下去依狀態跳出對應的步驟說明（[MockGuideDialog]）。仍不算進「可以啟動」的條件：
+ *     少數機型的 appop 回報不可靠，擋下來反而讓人卡死；真的沒選，開始模擬時面板會再提示一次。
  *
  * 另有一列選用的 Health Connect 寫入權限：只有要用「Health 同步」才需要，不影響啟動。
  * 權限只能從 Activity 申請，所以懸浮面板發現缺權限時會帶 [EXTRA_REQUEST_HEALTH] 把人送回這裡。
@@ -75,6 +82,18 @@ class MainActivity : ComponentActivity() {
         /** intent extra：一進來就跳 Health Connect 的事前說明。 */
         private const val EXTRA_REQUEST_HEALTH = "request_health"
 
+        /** intent extra：一進來就跳「選為模擬位置 App」的步驟說明。 */
+        private const val EXTRA_REQUEST_MOCK_GUIDE = "request_mock_guide"
+
+        /**
+         * 系統設定的「捲到並標亮這一項」參數，值是偏好設定的 key。AOSP 與 Pixel 有效，
+         * 其他廠牌不認得就忽略，不會出錯。
+         */
+        private const val EXTRA_SETTINGS_HIGHLIGHT = ":settings:fragment_args_key"
+
+        /** 開發者選項裡「選取模擬位置資訊應用程式」那一項的偏好設定 key（AOSP）。 */
+        private const val MOCK_LOCATION_PREF_KEY = "mock_location_app"
+
         /** 隱私權政策公開網址，由 repo 的 docs/ 透過 GitHub Pages 發佈。 */
         const val PRIVACY_POLICY_URL = "https://wlworks.github.io/JogApp/privacy-policy"
 
@@ -83,6 +102,12 @@ class MainActivity : ComponentActivity() {
             Intent(context, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra(EXTRA_REQUEST_HEALTH, true)
+
+        /** 組出「回設定畫面看模擬位置 App 設定步驟」的 intent，理由同 [healthPermissionIntent]。 */
+        fun mockGuideIntent(context: Context): Intent =
+            Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(EXTRA_REQUEST_MOCK_GUIDE, true)
     }
 
     /** 是否要顯示「廣告隱私設定」列；查詢是非同步的，所以另外存一份給畫面讀。 */
@@ -111,11 +136,20 @@ class MainActivity : ComponentActivity() {
 
     private var showLocationDisclosure by mutableStateOf(false)
 
+    private var showMockGuide by mutableStateOf(false)
+
     /** 面板把人送回來申請 Health Connect 權限時，直接跳事前說明；extra 用過就清掉，轉向不會重跳。 */
     private fun handleHealthRequest(intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_REQUEST_HEALTH, false) != true) return
         intent.removeExtra(EXTRA_REQUEST_HEALTH)
         if (health.isAvailable()) showHealthDisclosure = true
+    }
+
+    /** 面板把人送回來看模擬位置 App 的設定步驟時，直接跳說明；extra 用過就清掉，理由同上。 */
+    private fun handleMockGuideRequest(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_REQUEST_MOCK_GUIDE, false) != true) return
+        intent.removeExtra(EXTRA_REQUEST_MOCK_GUIDE)
+        showMockGuide = true
     }
 
     /** 是否已取得精確定位權限。 */
@@ -130,6 +164,25 @@ class MainActivity : ComponentActivity() {
                 this, Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
         } else true
+
+    /** 開發者選項是否已開啟（連點版本號碼七次那一步）。讀不到就當作沒開。 */
+    private fun isDeveloperOptionsEnabled(): Boolean =
+        Settings.Global.getInt(contentResolver, Settings.Global.DEVELOPMENT_SETTINGS_ENABLED, 0) == 1
+
+    /**
+     * 本 App 是否已被選為模擬位置 App。開發者選項裡的那個選擇，實際上就是把本 App 的
+     * mock_location appop 設成 allow（adb 用 appops set 給的也是同一個開關），查自己的 appop 不需要權限。
+     */
+    private fun isMockAppSelected(): Boolean = runCatching {
+        val appOps = getSystemService(AppOpsManager::class.java)
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_MOCK_LOCATION, Process.myUid(), packageName)
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow(AppOpsManager.OPSTR_MOCK_LOCATION, Process.myUid(), packageName)
+        }
+        mode == AppOpsManager.MODE_ALLOWED
+    }.getOrDefault(false)
 
     /** 掛上設定畫面，並把各權限狀態接到勾選列。 */
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,7 +204,8 @@ class MainActivity : ComponentActivity() {
                     onRequestHealth = { showHealthDisclosure = true },
                     adPrivacyAvailable = adPrivacyAvailable,
                     onOpenAdPrivacy = { RewardedGate.showPrivacyOptions(this) },
-                    onOpenDeveloperOptions = ::openDeveloperOptions,
+                    mockAppSelected = isMockAppSelected(),
+                    onOpenMockGuide = { showMockGuide = true },
                     onOpenPrivacyPolicy = ::openPrivacyPolicy,
                     onStart = { FloatingWindowService.start(this) },
                     onStop = { FloatingWindowService.stop(this) }
@@ -163,6 +217,24 @@ class MainActivity : ComponentActivity() {
                             requestLocation()
                         },
                         onDismiss = { showLocationDisclosure = false }
+                    )
+                }
+                if (showMockGuide) {
+                    // 對話框開著的期間請懸浮面板讓開，關掉（或離開組合）時放回來
+                    DisposableEffect(Unit) {
+                        MockStateHolder.update { it.copy(mockGuideShowing = true) }
+                        onDispose { MockStateHolder.update { it.copy(mockGuideShowing = false) } }
+                    }
+                    val developerOptions = isDeveloperOptionsEnabled()
+                    MockGuideDialog(
+                        appLabel = applicationInfo.loadLabel(packageManager).toString(),
+                        developerOptionsEnabled = developerOptions,
+                        mockAppSelected = isMockAppSelected(),
+                        onConfirm = {
+                            showMockGuide = false
+                            if (developerOptions) openDeveloperOptions() else openAboutPhone()
+                        },
+                        onDismiss = { showMockGuide = false }
                     )
                 }
                 if (showHealthDisclosure) {
@@ -179,12 +251,14 @@ class MainActivity : ComponentActivity() {
             }
         }
         handleHealthRequest(intent)
+        handleMockGuideRequest(intent)
     }
 
     /** singleTop：設定畫面已經開著時，面板送來的申請走這裡。 */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleHealthRequest(intent)
+        handleMockGuideRequest(intent)
     }
 
     /** 從系統設定返回時重新檢查權限。 */
@@ -195,10 +269,22 @@ class MainActivity : ComponentActivity() {
         refreshHealth()
     }
 
-    /** 跳到開發者選項，跳不動就退回主設定頁。 */
+    /** 跳到「關於手機」，版本號碼在那裡（部分廠牌在下一層）；跳不動就退回主設定頁。 */
+    private fun openAboutPhone() {
+        runCatching {
+            openSettings.launch(Intent(Settings.ACTION_DEVICE_INFO_SETTINGS))
+        }.onFailure {
+            openSettings.launch(Intent(Settings.ACTION_SETTINGS))
+        }
+    }
+
+    /** 跳到開發者選項並請系統標亮模擬位置那一項，跳不動就退回主設定頁。 */
     private fun openDeveloperOptions() {
         runCatching {
-            openSettings.launch(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+            openSettings.launch(
+                Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                    .putExtra(EXTRA_SETTINGS_HIGHLIGHT, MOCK_LOCATION_PREF_KEY)
+            )
         }.onFailure {
             openSettings.launch(Intent(Settings.ACTION_SETTINGS))
         }
@@ -321,6 +407,47 @@ private fun LocationDisclosureDialog(onConfirm: () -> Unit, onDismiss: () -> Uni
     )
 }
 
+/**
+ * 「選為模擬位置 App」的步驟說明，依目前卡在哪一步顯示不同內容：
+ * 開發者選項還沒開 → 教連點版本號碼；開了還沒選 → 教去哪裡選；已經選好 → 告訴他完成了、哪裡可以改。
+ * [appLabel] 用實際的 App 名稱，debug 版在選單裡叫 Jog Debug，照抄才找得到。
+ */
+@Composable
+private fun MockGuideDialog(
+    appLabel: String,
+    developerOptionsEnabled: Boolean,
+    mockAppSelected: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val (title, body) = when {
+        mockAppSelected ->
+            stringResource(R.string.guide_done_title) to stringResource(R.string.guide_done_body, appLabel)
+        developerOptionsEnabled ->
+            stringResource(R.string.guide_select_title, appLabel) to
+                stringResource(R.string.guide_select_body, appLabel)
+        else ->
+            stringResource(R.string.guide_devopts_title) to stringResource(R.string.guide_devopts_body)
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(body) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    stringResource(
+                        if (developerOptionsEnabled) R.string.guide_open_devopts else R.string.guide_open_about
+                    )
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.guide_close)) }
+        }
+    )
+}
+
 /** 權限引導畫面：用途說明、四道關卡與選用的 Health Connect、啟動／關閉懸浮視窗，底下附隱私權政策連結。 */
 @Composable
 private fun SetupScreen(
@@ -335,7 +462,8 @@ private fun SetupScreen(
     onRequestHealth: () -> Unit,
     adPrivacyAvailable: Boolean,
     onOpenAdPrivacy: () -> Unit,
-    onOpenDeveloperOptions: () -> Unit,
+    mockAppSelected: Boolean,
+    onOpenMockGuide: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit
@@ -371,8 +499,8 @@ private fun SetupScreen(
         CheckRow(stringResource(R.string.setup_notification), notificationGranted, onRequestNotification)
         CheckRow(
             title = stringResource(R.string.setup_mock_app),
-            granted = null,
-            onClick = onOpenDeveloperOptions
+            granted = mockAppSelected,
+            onClick = onOpenMockGuide
         )
         // 選用，不算進 ready：不用 Health 同步的人完全不必理它
         if (healthAvailable) {
@@ -380,7 +508,7 @@ private fun SetupScreen(
         } else {
             CheckRow(stringResource(R.string.setup_health_unavailable), granted = false, onClick = {})
         }
-        // 沒有「已完成」的狀態可言，和開發者選項那列一樣只顯示箭頭
+        // 沒有「已完成」的狀態可言，只顯示箭頭
         if (adPrivacyAvailable) {
             CheckRow(stringResource(R.string.setup_ad_privacy), granted = null, onClick = onOpenAdPrivacy)
         }

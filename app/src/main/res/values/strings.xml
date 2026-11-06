@@ -23,6 +23,16 @@
     <string name="setup_ad_privacy">Ad privacy choices</string>
     <string name="setup_start">Start floating panel</string>
     <string name="setup_stop">Stop floating panel</string>
+    <!-- Mock location app guide（設定畫面第四列的對話框）。%1$s 是 App 實際名稱，debug 版是 Jog Debug -->
+    <string name="guide_devopts_title">Turn on Developer options first</string>
+    <string name="guide_devopts_body">1. Tap Open About phone below.\n2. Find Build number and tap it 7 times, until it says you are now a developer. On some phones it is under Software information.\n3. Come back to Jog and tap this row again for the next step.</string>
+    <string name="guide_select_title">Choose %1$s as the mock location app</string>
+    <string name="guide_select_body">1. Tap Open Developer options below.\n2. Tap Select mock location app. On many phones the page scrolls to it for you; otherwise look under Debugging or Location.\n3. Choose %1$s.\nWhen you come back, this row shows a check mark.</string>
+    <string name="guide_done_title">Mock location app is set</string>
+    <string name="guide_done_body">%1$s is selected as the mock location app. You can change this any time in Developer options.</string>
+    <string name="guide_open_about">Open About phone</string>
+    <string name="guide_open_devopts">Open Developer options</string>
+    <string name="guide_close">Close</string>
 
     <!-- Floating panel -->
     <string name="panel_query_hint">Place or 25.033, 121.565</string>
@@ -44,6 +54,7 @@
     <string name="panel_tab_move">Move</string>
     <string name="panel_tab_saved">Saved</string>
     <string name="panel_saved_empty">Nothing saved yet. Tap the star next to the coordinates to save the current spot.</string>
+    <string name="panel_mock_guide">Show setup steps →</string>
     <string name="cd_save_here">Save this spot</string>
     <string name="cd_unsave_here">Remove this spot from saved places</string>
     <string name="cd_delete_favorite">Delete</string>

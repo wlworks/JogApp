@@ -19,6 +19,15 @@
     <string name="setup_ad_privacy">廣告隱私設定</string>
     <string name="setup_start">啟動懸浮視窗</string>
     <string name="setup_stop">關閉懸浮視窗</string>
+    <string name="guide_devopts_title">先開啟開發者選項</string>
+    <string name="guide_devopts_body">1. 點下方的「開啟關於手機」。\n2. 找到「版本號碼」連點 7 次，直到出現已成為開發人員的提示。部分手機在「軟體資訊」裡面。\n3. 回到 Jog 再點一次這一列，看下一步。</string>
+    <string name="guide_select_title">把 %1$s 選為模擬位置應用程式</string>
+    <string name="guide_select_body">1. 點下方的「開啟開發者選項」。\n2. 點「選取模擬位置資訊應用程式」。多數手機會自動捲到這一項；沒有的話，在「偵錯」或「位置」區段找。\n3. 選擇 %1$s。\n回到這裡後，這一列會變成打勾。</string>
+    <string name="guide_done_title">模擬位置應用程式已設定</string>
+    <string name="guide_done_body">%1$s 已被選為模擬位置應用程式，之後隨時可以在開發者選項更改。</string>
+    <string name="guide_open_about">開啟關於手機</string>
+    <string name="guide_open_devopts">開啟開發者選項</string>
+    <string name="guide_close">關閉</string>
 
     <!-- Floating panel -->
     <string name="panel_query_hint">地名 或 25.033, 121.565</string>
@@ -38,6 +47,7 @@
     <string name="panel_tab_move">移動</string>
     <string name="panel_tab_saved">最愛</string>
     <string name="panel_saved_empty">還沒有最愛。點座標旁的星號，就能存下目前位置。</string>
+    <string name="panel_mock_guide">查看設定步驟 →</string>
     <string name="cd_save_here">把這裡加入最愛</string>
     <string name="cd_unsave_here">把這裡從最愛移除</string>
     <string name="cd_delete_favorite">刪除</string>

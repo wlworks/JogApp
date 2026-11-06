@@ -97,7 +97,7 @@ class MockLocationEngine(private val context: Context) {
      * 是**靜靜 return**，不丟例外。只靠例外的話 [start] 會回報成功、面板顯示模擬中，
      * 實際上一筆座標都沒送出去，使用者也看不到「請到開發者選項選擇 Jog」的提示。
      */
-    private fun isMockLocationApp(): Boolean {
+    fun isMockLocationApp(): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             appOps.unsafeCheckOpNoThrow(
