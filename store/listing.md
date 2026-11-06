@@ -35,15 +35,16 @@ HOW IT WORKS
 • Auto move: the simulated position roams on its own at the selected speed tier, turning gradually like a real walk or drive. Push the joystick at any time to steer.
 • Health sync (optional): while the position moves at creep, walk or run speed, Jog writes the simulated steps and distance to Health Connect once a minute, so you can test apps that read them.
 • Auto move and Health sync are unlocked by watching one short rewarded ad, valid until you close the floating panel. Teleport, the joystick, random jump and everything else work without ads.
+• Save favorite places with the star next to the coordinates and jump back to them from the Saved tab.
 • Jog remembers the last simulated position and restores it the next time you open the app.
 • A persistent notification shows while simulation is running so you can stop it at any time.
 
 REQUIREMENTS
-Jog only works after you enable Developer options and select Jog as the mock location app. Jog cannot make that selection for you, and it cannot simulate anything until you do.
+Jog only works after you enable Developer options and select Jog as the mock location app. Jog cannot make that selection for you, and it cannot simulate anything until you do. The setup screen shows which step is missing and walks you through it.
 
 PRIVACY
 • Jog never reads, stores or uploads your real location.
-• The last simulated position is saved only on your device, so you can pick up where you left off.
+• The last simulated position and your saved places are stored only on your device.
 • Health sync is off by default. It only writes simulated steps and distance to Health Connect on your device, marked as manually entered. Jog never reads any health data.
 • No accounts and no analytics of Jog's own.
 • Ads are served by Google AdMob, which may collect device identifiers and approximate location to show ads; see the privacy policy for details. Your simulated coordinates and Health Connect data are never shared with AdMob.
@@ -88,15 +89,16 @@ Jog 是給 Android 開發者與 QA 測試人員用的模擬定位工具。它把
 • 自動移動：模擬位置依目前的速度檔自行隨機移動，像真的走路或開車一樣逐漸轉彎，隨時可以推搖桿接手方向。
 • Health 同步（選用）：以蝸行、步行或慢跑速度移動時，每分鐘把模擬的步數與距離寫入 Health Connect，方便測試會讀取這些資料的 App。
 • 自動移動與 Health 同步需觀看一則短獎勵廣告解鎖，效期到關閉懸浮面板為止。瞬移、搖桿、隨機跳等其他功能都不需要看廣告。
+• 點座標旁的星號把地點存成最愛，之後從「最愛」分頁一鍵跳回去。
 • 記住上次的模擬位置，下次開啟時直接接續。
 • 模擬進行中顯示常駐通知，隨時可以停止。
 
 需求
-Jog 必須在你啟用開發者選項並把 Jog 選為模擬位置資訊應用程式之後才能運作。Jog 無法替你完成這個選擇，選擇之前也無法模擬任何東西。
+Jog 必須在你啟用開發者選項並把 Jog 選為模擬位置資訊應用程式之後才能運作。Jog 無法替你完成這個選擇，選擇之前也無法模擬任何東西。設定畫面會顯示還差哪一步，並一步步帶你完成。
 
 隱私
 • Jog 不會讀取、儲存或上傳你的真實位置。
-• 上次的模擬位置只存在你的裝置上，方便下次接續。
+• 上次的模擬位置與你存的最愛地點只存在你的裝置上。
 • Health 同步預設關閉，只會把模擬的步數與距離寫入你裝置上的 Health Connect，並標記為手動輸入。Jog 不會讀取任何健康資料。
 • 沒有帳號，Jog 本身也沒有任何分析功能。
 • 廣告由 Google AdMob 提供，AdMob 為了顯示廣告可能會蒐集裝置識別碼與概略位置，詳見隱私權政策。你的模擬座標與 Health Connect 資料都不會提供給 AdMob。

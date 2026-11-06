@@ -132,4 +132,44 @@ MAJOR：開始含廣告（Google AdMob），Play Console 的廣告聲明、Adver
 </de-DE>
 ```
 
+## 3.3.0（versionCode 30300）— 最愛地點、模擬位置設定引導
+
+```
+<en-US>
+• Favorites: tap the star next to the coordinates to save the current spot, then jump back to it from the new star tab. Up to 20 places, stored only on your device.
+• The setup screen now checks whether Jog is selected as the mock location app and shows the exact steps for what is missing, including turning on Developer options.
+• If you press Start before that is done, the panel links straight to the steps.
+</en-US>
+<zh-TW>
+• 最愛地點：點座標旁的星號存下目前位置，之後從新的星號分頁一鍵跳回去。最多 20 筆，只存在你的裝置上。
+• 設定畫面會偵測 Jog 是否已選為模擬位置應用程式，並依目前卡住的步驟顯示說明，包含如何開啟開發者選項。
+• 還沒設定就按開始時，面板會直接提供設定步驟的入口。
+</zh-TW>
+<ja-JP>
+• お気に入り：座標の横の星をタップして現在地を保存し、新しい星のタブからすぐに戻れます。最大 20 件、端末内にのみ保存されます。
+• 設定画面で Jog が仮の現在地情報アプリに選択されているかを確認し、足りない手順（開発者向けオプションの有効化を含む）を表示します。
+• 設定前に開始を押した場合、パネルから手順をすぐに開けます。
+</ja-JP>
+<ko-KR>
+• 즐겨찾기: 좌표 옆의 별을 눌러 현재 위치를 저장하고 새 별 탭에서 바로 돌아갈 수 있습니다. 최대 20개이며 기기에만 저장됩니다.
+• 설정 화면에서 Jog가 모의 위치 앱으로 선택되었는지 확인하고, 개발자 옵션 켜기를 포함해 남은 단계를 안내합니다.
+• 설정 전에 시작을 누르면 패널에서 바로 안내를 열 수 있습니다.
+</ko-KR>
+<es-419>
+• Favoritos: toca la estrella junto a las coordenadas para guardar el lugar actual y vuelve a él desde la nueva pestaña de estrella. Hasta 20 lugares, guardados solo en tu dispositivo.
+• La pantalla de configuración comprueba si Jog es la app de ubicación simulada y muestra los pasos que faltan, incluido cómo activar las Opciones para desarrolladores.
+• Si tocas Iniciar antes de completarlo, el panel lleva directo a esos pasos.
+</es-419>
+<pt-BR>
+• Favoritos: toque na estrela ao lado das coordenadas para salvar o local atual e volte a ele pela nova aba de estrela. Até 20 locais, salvos apenas no seu dispositivo.
+• A tela de configuração verifica se o Jog é o app de local fictício e mostra os passos que faltam, incluindo como ativar as Opções do desenvolvedor.
+• Se você tocar em Iniciar antes disso, o painel leva direto a esses passos.
+</pt-BR>
+<de-DE>
+• Favoriten: Tippe auf den Stern neben den Koordinaten, um den aktuellen Ort zu speichern, und springe über den neuen Stern-Tab dorthin zurück. Bis zu 20 Orte, nur auf deinem Gerät gespeichert.
+• Der Einrichtungsbildschirm prüft, ob Jog als App für simulierte Standorte ausgewählt ist, und zeigt die fehlenden Schritte an, auch wie du die Entwickleroptionen aktivierst.
+• Tippst du vorher auf Start, führt das Bedienfeld direkt zu diesen Schritten.
+</de-DE>
+```
+
 之後每次上傳新版：`versionCode` +1，在這裡加一段，只寫這版改了什麼。
