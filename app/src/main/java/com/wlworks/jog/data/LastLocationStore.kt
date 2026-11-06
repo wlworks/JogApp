@@ -8,7 +8,7 @@ import com.wlworks.jog.core.LatLng
  * 記住上一次的模擬座標，下次開 App 直接接續。
  *
  * 只存**使用者輸入／推桿推到的模擬座標**，不碰裝置真實位置；存在 App 私有的
- * SharedPreferences，不離開裝置。本 App 的持久化資料只有這個和 [PanelPositionStore]，
+ * SharedPreferences，不離開裝置。本 App 的持久化資料只有這個、[PanelPositionStore] 與 [FavoritesStore]，
  * 隱私權政策的「資料儲存」一節有對應描述，改動這裡要一併更新。
  *
  * 經緯度用 raw long bits 存而不是 Float：Float 在緯度 35° 附近只有約 1 m 的解析度，

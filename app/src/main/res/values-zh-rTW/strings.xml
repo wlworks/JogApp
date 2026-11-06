@@ -36,6 +36,11 @@
     <string name="panel_health_written">Health 同步中（限蝸行／步行／慢跑）· 已寫入 %1$d 步 · %2$s</string>
     <string name="panel_tab_location">位置</string>
     <string name="panel_tab_move">移動</string>
+    <string name="panel_tab_saved">最愛</string>
+    <string name="panel_saved_empty">還沒有最愛。點座標旁的星號，就能存下目前位置。</string>
+    <string name="cd_save_here">把這裡加入最愛</string>
+    <string name="cd_unsave_here">把這裡從最愛移除</string>
+    <string name="cd_delete_favorite">刪除</string>
     <string name="panel_auto_moving">自動移動中 · 推搖桿可接手方向</string>
 
     <!-- Speed tiers -->
@@ -52,6 +57,7 @@
     <string name="msg_need_target">請先輸入地點或座標</string>
     <string name="msg_not_found">找不到「%1$s」</string>
     <string name="msg_geocoder_unavailable">目前無法搜尋地名，請確認網路或直接輸入經緯度</string>
+    <string name="msg_favorites_full">最多只能存 %1$d 個地點，請先到「最愛」分頁刪掉一筆</string>
     <string name="label_coordinates">座標 %1$s</string>
     <string name="msg_random_jumped">隨機往%1$s跳了 %2$s（%3$s）</string>
 

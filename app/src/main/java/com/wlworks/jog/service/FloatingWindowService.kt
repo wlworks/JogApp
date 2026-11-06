@@ -41,11 +41,14 @@ import com.wlworks.jog.ads.GatedFeature
 import com.wlworks.jog.ads.RewardedGate
 import com.wlworks.jog.ads.UnlockActivity
 import com.wlworks.jog.core.DistanceFormat
+import com.wlworks.jog.core.Favorite
+import com.wlworks.jog.core.Favorites
 import com.wlworks.jog.core.GeoMath
 import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.LatLng
 import com.wlworks.jog.core.RandomJump
 import com.wlworks.jog.core.SpeedTier
+import com.wlworks.jog.data.FavoritesStore
 import com.wlworks.jog.data.GeocodeRepository
 import com.wlworks.jog.data.HealthConnectStore
 import com.wlworks.jog.data.LastLocationStore
@@ -110,6 +113,7 @@ class FloatingWindowService : LifecycleService() {
     }
 
     private lateinit var engine: MockLocationEngine
+    private lateinit var favorites: FavoritesStore
     private lateinit var geocoder: GeocodeRepository
     private lateinit var health: HealthConnectStore
 
@@ -120,6 +124,13 @@ class FloatingWindowService : LifecycleService() {
     private var healthWindowStart: Instant = Instant.now()
     private lateinit var lastLocation: LastLocationStore
     private lateinit var movement: MovementController
+
+    /**
+     * 最近一次搜尋或最愛跳轉的「名字 + 座標」。存最愛時目前位置還在它附近，就直接沿用這個名字，
+     * 不必再反查一次 —— 反查會拿到門牌地址，不如使用者搜尋時看到的地標名稱好認。
+     * 只用 resolvedLabel 不夠：隨機跳也會寫那一行（「往北跳 120 m」），那不能當地名。
+     */
+    private var namedPlace: Favorite? = null
     private lateinit var overlay: OverlayHost
     private lateinit var panelPosition: PanelPositionStore
     private val tally = HealthTally()
@@ -217,6 +228,14 @@ class FloatingWindowService : LifecycleService() {
         }
     }
 
+    /** 跳到第 [index] 筆最愛，行為和搜尋到結果一樣：沒在模擬就順便開始注入。 */
+    private fun goToFavorite(index: Int) {
+        val favorite = MockStateHolder.state.value.favorites.getOrNull(index) ?: return
+        namedPlace = favorite
+        MockStateHolder.update { it.copy(message = null, resolvedLabel = favorite.name) }
+        applyTarget(favorite.point)
+    }
+
     /** 是否已取得精確定位權限。 */
     private fun hasLocationPermission() = ContextCompat.checkSelfPermission(
         this, android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -305,6 +324,8 @@ class FloatingWindowService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         engine = MockLocationEngine(this)
+        favorites = FavoritesStore(this)
+        MockStateHolder.update { it.copy(favorites = favorites.load()) }
         movement = MovementController(engine = engine, scope = lifecycleScope, tally = tally)
         geocoder = GeocodeRepository(this)
         health = HealthConnectStore(this)
@@ -387,6 +408,13 @@ class FloatingWindowService : LifecycleService() {
         return START_STICKY
     }
 
+    /** 刪掉第 [index] 筆最愛並寫回儲存。 */
+    private fun removeFavorite(index: Int) {
+        val list = Favorites.removeAt(MockStateHolder.state.value.favorites, index)
+        MockStateHolder.update { it.copy(favorites = list) }
+        favorites.save(list)
+    }
+
     /** 解析輸入框內容並瞬移過去，查不到就把訊息寫回面板。 */
     private fun search() {
         val query = MockStateHolder.state.value.query
@@ -405,6 +433,7 @@ class FloatingWindowService : LifecycleService() {
                     MockStateHolder.update {
                         it.copy(message = null, resolvedLabel = first.label)
                     }
+                    namedPlace = Favorite(name = first.label, point = first.point)
                     applyTarget(first.point)
                 }
                 GeocodeRepository.Outcome.NoMatch ->
@@ -471,6 +500,8 @@ class FloatingWindowService : LifecycleService() {
                             MockStateHolder.releaseInputFocus()
                             collapsed = true
                         },
+                        onDeleteFavorite = ::removeFavorite,
+                        onGoToFavorite = ::goToFavorite,
                         onInputFocusChanged = overlay::setInputFocusable,
                         onQueryChange = MockStateHolder::setQuery,
                         onRandomNearby = ::teleportRandomNearby,
@@ -479,6 +510,7 @@ class FloatingWindowService : LifecycleService() {
                         onSpeed = MockStateHolder::setSpeed,
                         onStick = MockStateHolder::setStick,
                         onToggleAuto = ::toggleAutoMove,
+                        onToggleFavorite = ::toggleFavorite,
                         onToggleHealth = ::toggleHealthSync,
                         onToggleRun = ::toggleRun
                     )
@@ -535,6 +567,61 @@ class FloatingWindowService : LifecycleService() {
         // applyTarget 可能失敗（沒被選為 mock app），沒跑起來就不要亮自動移動
         MockStateHolder.update {
             it.copy(autoMove = it.running, resolvedLabel = if (it.running) null else it.resolvedLabel)
+        }
+    }
+
+    /**
+     * 目前座標的星號：已經存過（[Favorites.SAME_PLACE_M] 內有一筆）就刪掉那筆，否則存一筆新的。
+     * 成功不另外出訊息：面板的訊息列是錯誤樣式，星號亮／暗就是回饋。
+     *
+     * 名字優先沿用 [namedPlace]（剛搜尋或剛跳過去、還沒走遠），否則反查地址，查不到用座標。
+     * 反查要等最多幾秒，期間 savingFavorite 讓星號轉圈；查完以「當下」的清單再加一次，
+     * 等待中刪掉別筆也不會被蓋回去。已滿先擋，不必白查一次。
+     */
+    private fun toggleFavorite() {
+        val state = MockStateHolder.state.value
+        if (state.savingFavorite) return
+        val point = state.current
+        if (point == null) {
+            MockStateHolder.message(getString(R.string.msg_need_target))
+            return
+        }
+        Favorites.indexNear(state.favorites, point)?.let {
+            removeFavorite(it)
+            return
+        }
+        if (state.favorites.size >= Favorites.MAX) {
+            MockStateHolder.message(getString(R.string.msg_favorites_full, Favorites.MAX))
+            return
+        }
+        MockStateHolder.update { it.copy(savingFavorite = true) }
+        lifecycleScope.launch {
+            val named = namedPlace?.takeIf { GeoMath.distance(it.point, point) <= Favorites.SAME_PLACE_M }
+            val name = named?.name ?: geocoder.describe(point)
+            val result = Favorites.add(
+                list = MockStateHolder.state.value.favorites,
+                favorite = Favorite(name = name, point = point)
+            )
+            when (result) {
+                is Favorites.AddResult.Added -> {
+                    MockStateHolder.update {
+                        it.copy(
+                            favorites = result.list,
+                            message = null,
+                            savingFavorite = false
+                        )
+                    }
+                    favorites.save(result.list)
+                }
+                Favorites.AddResult.Duplicate ->
+                    MockStateHolder.update { it.copy(savingFavorite = false) }
+                Favorites.AddResult.Full -> MockStateHolder.update {
+                    it.copy(
+                        message = getString(R.string.msg_favorites_full, Favorites.MAX),
+                        savingFavorite = false
+                    )
+                }
+            }
         }
     }
 

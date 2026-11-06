@@ -5,7 +5,7 @@ title: Jog Privacy Policy
 
 # Jog Privacy Policy
 
-**Effective date: 2026-10-20**
+**Effective date: 2026-11-06**
 
 Jog ("the app") is a mock location tool for development and QA testing, published by WLWorks. This policy explains what the app does with data. The short version: **Jog itself does not collect, store or transmit your personal data. The app shows ads through Google AdMob, and AdMob collects some device data to do so, as described below.**
 
@@ -47,11 +47,11 @@ Jog requests write access only. It never reads any data from Health Connect, and
 
 ## Place name lookup
 
-When you type a place name, Jog hands the text to the Android system Geocoder on your device. That lookup is performed by the operating system and is governed by the privacy policy of your device manufacturer or of Google, not by Jog. Jog does not send the query to any server of its own and does not keep a history of searches.
+When you type a place name, Jog hands the text to the Android system Geocoder on your device. That lookup is performed by the operating system and is governed by the privacy policy of your device manufacturer or of Google, not by Jog. Jog does not send the query to any server of its own and does not keep a history of searches. When you save a place to your favorites, Jog may likewise ask the system Geocoder for the address of that simulated coordinate, so the favorite has a readable name.
 
 ## Data storage
 
-Jog remembers the last simulated coordinate you set, so you can pick up where you left off the next time you open the app. This is the coordinate you typed or steered to — never your device's real location. It is stored in the app's private storage on your device, is never transmitted anywhere, and is removed when you uninstall the app or clear its data. The on-screen position of the floating panel is stored the same way, so the panel reopens where you left it. Everything else (place-name queries, speed tier) is kept in memory only and is discarded when the app process ends.
+Jog remembers the last simulated coordinate you set, so you can pick up where you left off the next time you open the app. This is the coordinate you typed or steered to — never your device's real location. It is stored in the app's private storage on your device, is never transmitted anywhere, and is removed when you uninstall the app or clear its data. The on-screen position of the floating panel is stored the same way, so the panel reopens where you left it. Places you save as favorites (a name and a simulated coordinate, up to 20) are stored the same way until you delete them. Everything else (place-name queries, speed tier) is kept in memory only and is discarded when the app process ends.
 
 ## Children
 
@@ -69,7 +69,7 @@ Questions about this policy can be sent to WLWorks at <willy78831@gmail.com>, or
 
 # Jog 隱私權政策
 
-**生效日期：2026-10-20**
+**生效日期：2026-11-06**
 
 Jog（以下稱「本 App」）是 WLWorks 發行的開發與 QA 測試用模擬定位工具。本政策說明本 App 如何處理資料。一句話版本：**Jog 本身不蒐集、不儲存、不傳輸你的個人資料。App 透過 Google AdMob 顯示廣告，AdMob 為此會蒐集部分裝置資料，詳見下文。**
 
@@ -111,11 +111,11 @@ Jog 只申請寫入權限，不會從 Health Connect 讀取任何資料；寫入
 
 ## 地名查詢
 
-當你輸入地名，Jog 會把文字交給裝置上的 Android 系統 Geocoder。這項查詢由作業系統執行，受你的裝置製造商或 Google 的隱私權政策規範，與 Jog 無關。Jog 不會把查詢送到任何自己的伺服器，也不保留搜尋記錄。
+當你輸入地名，Jog 會把文字交給裝置上的 Android 系統 Geocoder。這項查詢由作業系統執行，受你的裝置製造商或 Google 的隱私權政策規範，與 Jog 無關。Jog 不會把查詢送到任何自己的伺服器，也不保留搜尋記錄。你把地點存成最愛時，Jog 也可能以同樣方式請系統 Geocoder 查出該模擬座標的地址，作為最愛的名稱。
 
 ## 資料儲存
 
-Jog 會記住你最後設定的模擬座標，下次開啟 App 時可以直接接續。這是你輸入或推桿移動到的座標，絕不是裝置的真實位置。它存放在 App 在裝置上的私有儲存空間，不會傳送到任何地方，解除安裝或清除 App 資料時一併移除。懸浮面板在螢幕上的位置也以同樣方式保存，下次開啟時面板會出現在上次的位置。其餘內容（地名查詢、速度檔次）只保存在記憶體中，App 行程結束即丟棄。
+Jog 會記住你最後設定的模擬座標，下次開啟 App 時可以直接接續。這是你輸入或推桿移動到的座標，絕不是裝置的真實位置。它存放在 App 在裝置上的私有儲存空間，不會傳送到任何地方，解除安裝或清除 App 資料時一併移除。懸浮面板在螢幕上的位置也以同樣方式保存，下次開啟時面板會出現在上次的位置。你存成最愛的地點（名稱與模擬座標，最多 20 筆）也以同樣方式保存，直到你刪除為止。其餘內容（地名查詢、速度檔次）只保存在記憶體中，App 行程結束即丟棄。
 
 ## 兒童
 

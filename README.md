@@ -25,7 +25,9 @@
 | `data/HealthConnectStore.kt` | Health Connect 寫入端，只寫步數與距離、不讀任何資料 |
 | `ads/` | 廣告關卡：`UnlockActivity`（解鎖畫面）、`GateScreenTracker`（廣告在前景時讓面板讓開）與結果型別。`RewardedGate` 的實作在 `src/noAds/`（預設）或 `src/ads/`（AdMob） |
 | `data/GeocodeRepository.kt` | 座標解析 → 系統 Geocoder（4s timeout）。不打任何外部服務 |
-| `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化；App 自己唯一寫入磁碟的東西 |
+| `data/LastLocationStore.kt` | 上次模擬座標的 SharedPreferences 持久化 |
+| `data/FavoritesStore.kt` | 最愛地點（名稱＋模擬座標，最多 20 筆）的持久化；增刪與「同一處」判斷在 `core/Favorites.kt` |
+| `data/PanelPositionStore.kt` | 懸浮面板在螢幕上的位置 |
 | `mock/MockLocationEngine.kt` | LocationManager test provider + Fused mock mode |
 | `mock/MovementController.kt` | 10Hz tick，把搖桿輸入或自動移動換成座標位移 |
 | `state/MockState.kt` | 程序內唯一狀態來源 |

@@ -1,11 +1,13 @@
 package com.wlworks.jog.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,11 +16,17 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -37,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -49,6 +58,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wlworks.jog.R
 import com.wlworks.jog.core.DistanceFormat
+import com.wlworks.jog.core.Favorites
+import com.wlworks.jog.core.GeoMath
 import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.RandomJump
 import com.wlworks.jog.core.SpeedTier
@@ -67,6 +78,10 @@ private val Panel = Color(0xF01A1C1E)
 data class PanelActions(
     val onClose: () -> Unit,
     val onCollapse: () -> Unit,
+    /** 刪掉最愛清單的第 n 筆。 */
+    val onDeleteFavorite: (Int) -> Unit,
+    /** 跳到最愛清單的第 n 筆。 */
+    val onGoToFavorite: (Int) -> Unit,
     /**
      * 輸入框取得／失去焦點時通知 Service 切換 WindowManager 的 FLAG_NOT_FOCUSABLE。
      * 這是**唯一**會改動視窗焦點旗標的路徑 —— 其他地方一律透過清除 Compose 焦點
@@ -80,6 +95,8 @@ data class PanelActions(
     val onSpeed: (SpeedTier) -> Unit,
     val onStick: (Float, Float) -> Unit,
     val onToggleAuto: () -> Unit,
+    /** 目前座標旁的星號：存成最愛，已經存過就刪掉。 */
+    val onToggleFavorite: () -> Unit,
     val onToggleHealth: () -> Unit,
     val onToggleRun: () -> Unit
 )
@@ -87,10 +104,15 @@ data class PanelActions(
 /**
  * 展開面板右半邊的分頁。選哪一頁由 Service 記著，收合再展開後還停在同一頁。
  * entries 依字母排剛好也是畫面上由左到右的順序。
+ *
+ * 分頁平常只畫 [icon]，選中的那頁才在圖示旁加上 [labelRes]。右欄實際只有約 173dp，三頁都帶字加上
+ * 收合／關閉放不下，翻譯變長更糟。「位置」用地圖釘；「移動」用指南針，不用走路小人 —— 速度列已經是一排小人，會混在一起；
+ * 「最愛」用星號，和座標旁那顆存最愛的星號對得起來。
  */
-enum class PanelTab(@StringRes val labelRes: Int) {
-    LOCATION(R.string.panel_tab_location),
-    MOVE(R.string.panel_tab_move)
+enum class PanelTab(@StringRes val labelRes: Int, val icon: ImageVector) {
+    LOCATION(R.string.panel_tab_location, Icons.Filled.Place),
+    MOVE(R.string.panel_tab_move, Icons.Filled.Explore),
+    SAVED(R.string.panel_tab_saved, Icons.Filled.Star)
 }
 
 /**
@@ -162,8 +184,8 @@ fun CollapsedPanel(
 /**
  * 懸浮面板本體，橫式兩欄：
  *  - 左欄固定：標題、搖桿、開始／停止 —— 不管在哪一頁都推得到桿、停得下來。
- *  - 右欄分頁：「位置」放輸入、定位與隨機跳、解析結果；「移動」放自動移動與 Health 同步。
- *    速度檔（分頁列下方）與目前座標（分頁內容下方）放在分頁外，兩頁共用。
+ *  - 右欄分頁：「位置」放輸入、定位與隨機跳、解析結果；「移動」放自動移動與 Health 同步；
+ *    「最愛」放存下來的地點。速度檔（分頁列下方）與目前座標＋星號（分頁內容下方）放在分頁外，各頁共用。
  *
  * 直式面板塞滿控件後超過半個螢幕高，會蓋住底下 App 的大半畫面；橫式加分頁後約 372 × 245 dp，
  * 直拿手機也放得下。
@@ -269,17 +291,23 @@ fun FloatingPanel(
                     .heightIn(min = 28.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PanelTab.entries.forEach { entry ->
-                    TabButton(
-                        text = stringResource(entry.labelRes),
-                        selected = entry == tab,
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            // 換頁前先收鍵盤：輸入框在「位置」頁，換走之後就不在組合裡了
-                            dismissKeyboard()
-                            actions.onSelectTab(entry)
-                        }
-                    )
+                // 整組包在 weight 裡：被擠的一定是分頁，收合／關閉鈕留得住
+                Row(modifier = Modifier.weight(1f)) {
+                    PanelTab.entries.forEach { entry ->
+                        val selected = entry == tab
+                        TabButton(
+                            text = stringResource(entry.labelRes),
+                            icon = entry.icon,
+                            // 只讓選中那頁吃剩下的寬度：真的放不下時被截的是它的字，不是別頁的圖示
+                            modifier = if (selected) Modifier.weight(1f, fill = false) else Modifier,
+                            selected = selected,
+                            onClick = {
+                                // 換頁前先收鍵盤：輸入框在「位置」頁，換走之後就不在組合裡了
+                                dismissKeyboard()
+                                actions.onSelectTab(entry)
+                            }
+                        )
+                    }
                 }
                 IconText("—", stringResource(R.string.cd_collapse), actions.onCollapse)
                 IconText("✕", stringResource(R.string.cd_close), actions.onClose)
@@ -314,18 +342,42 @@ fun FloatingPanel(
                     adBadge = if (adLocked) stringResource(R.string.panel_ad_badge) else null,
                     dismissKeyboard = dismissKeyboard
                 )
+                PanelTab.SAVED -> SavedTab(
+                    state = state,
+                    actions = actions,
+                    dismissKeyboard = dismissKeyboard
+                )
             }
 
-            // ---- 目前座標 ----
-            // 放在分頁外面，兩頁都看得到：在「移動」頁開自動移動時也要能看座標一路在變
-            Text(
-                text = state.current?.let {
-                    // 刻意用 Locale.US：逗號小數點的語系會和座標分隔符撞在一起
-                    String.format(Locale.US, "%.6f, %.6f · %.0f°", it.lat, it.lng, state.bearing)
-                } ?: stringResource(R.string.panel_no_location),
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 11.sp
-            )
+            // ---- 目前座標與星號 ----
+            // 放在分頁外面，各頁都看得到：在「移動」頁開自動移動時也要能看座標一路在變。
+            // 星號跟著座標放，意思是「存這個點」；放在「位置」頁的話，走到半路想存還得先換頁。
+            // 「最愛」頁不放星號：清單裡目前位置那列已經標亮、也能刪，再一顆星號重複又和分頁的星號搶眼
+            Row(
+                // 高度固定和星號鈕一樣，換到「最愛」頁少了星號時這一列不會縮，下面的東西不跳
+                modifier = Modifier.heightIn(min = 28.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = state.current?.let {
+                        // 刻意用 Locale.US：逗號小數點的語系會和座標分隔符撞在一起
+                        String.format(Locale.US, "%.6f, %.6f · %.0f°", it.lat, it.lng, state.bearing)
+                    } ?: stringResource(R.string.panel_no_location),
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 11.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                state.current?.takeIf { tab != PanelTab.SAVED }?.let { current ->
+                    StarButton(
+                        busy = state.savingFavorite,
+                        saved = Favorites.indexNear(state.favorites, current) != null,
+                        onClick = {
+                            dismissKeyboard()
+                            actions.onToggleFavorite()
+                        }
+                    )
+                }
+            }
 
             state.message?.let {
                 Text(it, color = Color(0xFFFFB4A9), fontSize = 11.sp)
@@ -344,7 +396,8 @@ private fun IconText(symbol: String, description: String, onClick: () -> Unit) {
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            // 左右 5dp 是量過的：再寬，選中分頁的「Location」和另外兩個圖示就擠不下
+            .padding(horizontal = 5.dp, vertical = 2.dp)
             .semantics { contentDescription = description }
     )
 }
@@ -615,28 +668,144 @@ private fun RandomNearbyButton(label: String, modifier: Modifier = Modifier, onC
     }
 }
 
-/** 分頁列上的一個分頁：選中時文字變亮、底下一條主色底線。 */
+/**
+ * 「最愛」分頁：存下來的地點，新的在上。點一列跳過去，✕ 刪掉。
+ * 清單高度封頂、超出就捲動：面板是固定大小的 overlay，不能因為存了很多筆就長高蓋住底下的 App。
+ * 和目前位置是同一處的那一列用主色標出來，每列右邊附上離目前位置多遠。
+ */
+@Composable
+private fun SavedTab(
+    state: MockUiState,
+    actions: PanelActions,
+    dismissKeyboard: () -> Unit
+) {
+    if (state.favorites.isEmpty()) {
+        Text(
+            text = stringResource(R.string.panel_saved_empty),
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 11.sp,
+            lineHeight = 15.sp
+        )
+        return
+    }
+    val here = state.current?.let { Favorites.indexNear(state.favorites, it) }
+    val deleteDescription = stringResource(R.string.cd_delete_favorite)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 112.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        state.favorites.forEachIndexed { index, favorite ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White.copy(alpha = if (index == here) 0.12f else 0.05f))
+                    .clickable {
+                        dismissKeyboard()
+                        actions.onGoToFavorite(index)
+                    }
+                    .padding(start = 8.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = favorite.name,
+                    color = if (index == here) Accent else Color.White,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                state.current?.let {
+                    Text(
+                        text = DistanceFormat.single(GeoMath.distance(it, favorite.point)),
+                        color = Color.White.copy(alpha = 0.45f),
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+                IconText("✕", "$deleteDescription ${favorite.name}") {
+                    dismissKeyboard()
+                    actions.onDeleteFavorite(index)
+                }
+            }
+        }
+    }
+}
+
+/** 目前座標旁的星號：實心代表這裡已經存過。[busy] 時（正在反查地名）換成轉圈。 */
+@Composable
+private fun StarButton(busy: Boolean, saved: Boolean, onClick: () -> Unit) {
+    val description = stringResource(if (saved) R.string.cd_unsave_here else R.string.cd_save_here)
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(RoundedCornerShape(50))
+            .clickable(enabled = !busy, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center
+    ) {
+        if (busy) {
+            CircularProgressIndicator(color = Accent, strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
+        } else {
+            Icon(
+                imageVector = if (saved) Icons.Filled.Star else Icons.Filled.StarBorder,
+                // 描述已經掛在外層 Box 上
+                contentDescription = null,
+                tint = if (saved) AdBadge else Color.White.copy(alpha = 0.7f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
+
+/**
+ * 分頁列上的一個分頁：沒選中只畫 [icon]；選中時圖示旁多出 [text]、變亮、底下一條主色底線。
+ * 只有選中那頁帶字，三頁才擠得進右欄（約 173dp）—— 三頁都帶字時「Location」會被截掉。
+ */
 @Composable
 private fun TabButton(
     text: String,
+    icon: ImageVector,
     selected: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val tint = if (selected) Color.White else Color.White.copy(alpha = 0.5f)
+    // IntrinsicSize.Max：寬度跟著內容走。少了它，底線的 fillMaxWidth 會把這一格撐到整列寬
     Column(
         modifier = modifier
+            .width(IntrinsicSize.Max)
             .clip(RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
-            .padding(top = 4.dp),
+            // 換頁時字出現／消失，寬度用動畫帶過去，旁邊的分頁才不會瞬間跳位
+            .animateContentSize()
+            .padding(start = 4.dp, top = 4.dp, end = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = text,
-            color = if (selected) Color.White else Color.White.copy(alpha = 0.5f),
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            maxLines = 1
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                // 選中時旁邊已經有字，TalkBack 唸字就好，不必重複
+                contentDescription = if (selected) null else text,
+                tint = tint,
+                modifier = Modifier.size(16.dp)
+            )
+            if (selected) {
+                Spacer(Modifier.width(3.dp))
+                Text(
+                    text = text,
+                    color = tint,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
         Spacer(Modifier.height(4.dp))
         Box(
             Modifier

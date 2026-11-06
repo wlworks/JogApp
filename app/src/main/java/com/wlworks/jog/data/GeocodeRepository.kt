@@ -65,6 +65,39 @@ class GeocodeRepository(context: Context) {
         if (Geocoder.isPresent()) Geocoder(appContext, Locale.getDefault()) else null
 
     /**
+     * 給 [point] 取一個給人看的名字（存最愛用）：先反查地址，查不到、逾時或沒有 Geocoder
+     * 就退回「座標 25.03364, 121.56477」。一定有回傳值，呼叫端不必處理失敗。
+     */
+    suspend fun describe(point: LatLng): String {
+        val gc = geocoder
+        val address = if (gc == null) null else withTimeoutOrNull(TIMEOUT_MS) {
+            runCatchingCancellable {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    suspendCancellableCoroutine<Address?> { cont ->
+                        gc.getFromLocation(point.lat, point.lng, 1, object : Geocoder.GeocodeListener {
+                            override fun onGeocode(addresses: MutableList<Address>) {
+                                if (cont.isActive) cont.resume(addresses.firstOrNull())
+                            }
+
+                            override fun onError(errorMessage: String?) {
+                                Log.w(TAG, "reverse geocode error: $errorMessage")
+                                if (cont.isActive) cont.resume(null)
+                            }
+                        })
+                    }
+                } else {
+                    withContext(Dispatchers.IO) {
+                        @Suppress("DEPRECATION")
+                        gc.getFromLocation(point.lat, point.lng, 1)?.firstOrNull()
+                    }
+                }
+            }.getOrNull()
+        }
+        return address?.let { toHit(it).label }?.takeIf { it.isNotBlank() }
+            ?: appContext.getString(R.string.label_coordinates, fmt(point))
+    }
+
+    /**
      * 座標轉顯示字串。
      *
      * 固定用 Locale.US：法德等語系的預設格式會把小數點印成逗號，

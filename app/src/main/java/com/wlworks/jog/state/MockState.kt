@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.wlworks.jog.core.Favorite
 import com.wlworks.jog.core.HealthTally
 import com.wlworks.jog.core.LatLng
 import com.wlworks.jog.core.SpeedTier
@@ -23,6 +24,8 @@ data class MockUiState(
     val autoMove: Boolean = false,
     val bearing: Float = 0f,
     val current: LatLng? = null,
+    /** 最愛地點，新的在前。Service 啟動時從 FavoritesStore 載入，每次增刪都寫回去。 */
+    val favorites: List<Favorite> = emptyList(),
     /**
      * 遞增這個值就等於要求 UI 清除輸入框焦點。
      * 用 tick 而不是 boolean，是為了讓連續兩次「收鍵盤」都能觸發 LaunchedEffect。
@@ -50,6 +53,8 @@ data class MockUiState(
     /** 解鎖畫面或廣告正在前景（由 GateScreenTracker 維護）。這段期間懸浮面板要讓開，不可以蓋在廣告上。 */
     val rewardUnlocking: Boolean = false,
     val running: Boolean = false,
+    /** 正在替目前座標反查地名、準備存成最愛；期間星號換成轉圈，避免連按存兩次。 */
+    val savingFavorite: Boolean = false,
     val searching: Boolean = false,
     val speedTier: SpeedTier = SpeedTier.DEFAULT,
     val stick: StickInput = StickInput()

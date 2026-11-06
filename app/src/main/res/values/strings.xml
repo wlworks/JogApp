@@ -42,6 +42,11 @@
     <string name="panel_health_written">Health sync on (Creep, Walk, Run) · %1$d steps · %2$s written</string>
     <string name="panel_tab_location">Location</string>
     <string name="panel_tab_move">Move</string>
+    <string name="panel_tab_saved">Saved</string>
+    <string name="panel_saved_empty">Nothing saved yet. Tap the star next to the coordinates to save the current spot.</string>
+    <string name="cd_save_here">Save this spot</string>
+    <string name="cd_unsave_here">Remove this spot from saved places</string>
+    <string name="cd_delete_favorite">Delete</string>
     <string name="panel_auto_moving">Auto-moving · push the stick to steer</string>
 
     <!-- Speed tiers -->
@@ -58,6 +63,8 @@
     <string name="msg_need_target">Enter a place or coordinates first</string>
     <string name="msg_not_found">No match for \"%1$s\"</string>
     <string name="msg_geocoder_unavailable">Place search unavailable — check the network, or enter coordinates instead</string>
+    <!-- %1$d 是上限筆數（Favorites.MAX） -->
+    <string name="msg_favorites_full">You can save up to %1$d places. Delete one in the Saved tab first.</string>
     <string name="label_coordinates">Coordinates %1$s</string>
     <!-- %1$s 方位（compass_points）、%2$s 距離、%3$s 當時的速度檔 -->
     <string name="msg_random_jumped">Random jump %2$s %1$s (%3$s)</string>
